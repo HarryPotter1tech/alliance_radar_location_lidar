@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "/workspace/lidar_ros_driver/livox_ros_driver2"
+    "cmake.sourceDirectory": "/workspace/lidar_ros_driver/livox_ros_driver2",
+    "clang-format.executable": "/usr/bin/clang-format-22"
 }

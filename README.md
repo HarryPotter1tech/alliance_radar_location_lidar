@@ -89,6 +89,7 @@ docker exec -it RADAR bash
 | `radar --build-pure [Release\|Debug]` | 清理后重新编译 |
 | `radar --build-run [Release\|Debug]` | 增量编译并运行节点 |
 | `radar --run` | 仅运行节点（不编译） |
+| `radar --format` | 格式化 radar_localization_lidar/src/ 下所有 .cpp .hpp |
 | `radar --help` | 查看帮助 |
 
 构建类型默认为 `Release`：

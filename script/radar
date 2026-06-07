@@ -15,12 +15,17 @@ case "$1" in
         echo "Run radar_localization_lidar..."
         bash "$SCRIPT_DIR/run.sh"
         ;;
+    --format)
+        echo "Formatting src/..."
+        bash "$SCRIPT_DIR/format.sh"
+        ;;
     --help)
         echo "Usage: $0 [OPTION] [Release|Debug]"
         echo "Options:"
         echo "  --build-pure [Release|Debug]    Clean rebuild (delete build/ then build)"
         echo "  --build-run  [Release|Debug]    Incremental build and run node"
         echo "  --run                           Run node only (no build)"
+        echo "  --format                        Format all .cpp and .hpp under radar_localization_lidar/src/"
         echo "  --help                         Display this help message"
         echo ""
         echo "Build type defaults to Release if not specified."
