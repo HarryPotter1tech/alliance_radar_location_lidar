@@ -1,0 +1,25 @@
+#!/bin/bash
+SCRIPT_DIR="/workspace/.vscode/script"
+
+case "$1" in
+    --build-pure)
+        echo "Pure build radar_localization_lidar..."
+        bash "$SCRIPT_DIR/build_pure.sh"
+        ;;
+    --build-run)
+        echo "Build and run radar_localization_lidar..."
+        bash "$SCRIPT_DIR/build_run.sh"
+        ;;
+    --help)
+        echo "Usage: $0 [OPTION]"
+        echo "Options:"
+        echo "  --build-pure    pure build,this will delete all build files and build again"
+        echo "  --build-run     Run build and run script,this won't delete build files, just build and run"
+        echo "  --help          Display this help message"
+        ;;
+    *)
+    echo "Unknown option: $1"
+    echo "Try '$0 --help' for usage."
+    exit 1
+    ;;
+esac
