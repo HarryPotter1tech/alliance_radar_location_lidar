@@ -5,20 +5,35 @@ set -e
 echo 'source /opt/ros/humble/setup.bash' >> /etc/bash.bashrc
 echo 'source /opt/ros/humble/setup.bash' >> /etc/skel/.bashrc
 
-# 最终 banner
+GOLD="\033[38;5;178m"
+BLUE="\033[38;5;33m"
+RST="\033[0m"
+
 printf "\n\n\n\n"
-printf "\033[38;5;160m\033[3m"
-echo "                   ======  构建完成!  7/7 全部通过  ======"
-printf "\033[0m\n\n"
-printf "\033[38;5;124m"
+
+# ── 版本信息框 (金色框 + 蓝色字) ──
+printf "${GOLD}"
+echo "    ╔══════════════════════════════════════════════════════════════╗"
+echo "    ║                                                              ║"
+printf "    ║  ${BLUE}GCC:   %-54s${GOLD}║\n"   "$(gcc --version | head -1)"
+printf "    ║  ${BLUE}CMake: %-54s${GOLD}║\n"   "$(cmake --version | head -1)"
+printf "    ║  ${BLUE}clang: %-54s${GOLD}║\n"   "$(clang-format-22 --version | head -1)"
+echo "    ║                                                              ║"
+echo "    ╚══════════════════════════════════════════════════════════════╝"
+printf "${RST}\n"
+
+# ── ALLIANCE RADAR logo (金色框) ──
+printf "${GOLD}"
 echo "  █████╗ ██╗     ██╗     ██╗ █████╗ ███╗   ██╗ ██████╗███████╗      ██████╗  █████╗ ██████╗  █████╗ ██████╗ "
 echo " ██╔══██╗██║     ██║     ██║██╔══██╗████╗  ██║██╔════╝██╔════╝      ██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗"
 echo " ███████║██║     ██║     ██║███████║██╔██╗ ██║██║     █████╗        ██████╔╝███████║██║  ██║███████║██████╔╝"
 echo " ██╔══██║██║     ██║     ██║██╔══██║██║╚██╗██║██║     ██╔══╝        ██╔══██╗██╔══██║██║  ██║██╔══██║██╔══██╗"
 echo " ██║  ██║███████╗███████╗██║██║  ██║██║ ╚████║╚██████╗███████╗      ██║  ██║██║  ██║██████╔╝██║  ██║██║  ██║"
 echo " ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝      ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝"
+printf "${RST}\n"
+
+# ── 构建完成 (蓝色字 + 斜体) ──
+printf "${BLUE}\033[3m"
 echo ""
-echo "  GCC:   $(gcc --version | head -1)"
-echo "  CMake: $(cmake --version | head -1)"
-echo "  clang: $(clang-format-22 --version | head -1)"
-printf "\033[0m\n"
+echo "                   ======  构建完成!  7/7 全部通过  ======"
+printf "${RST}\n\n"
