@@ -22,6 +22,9 @@ RUN echo "" && \
     echo "========================================" && \
     echo "[1/7] 安装 GCC 13 (C++23 编译器)" && \
     echo "========================================" && \
+    echo "  → 安装 add-apt-repository..." && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common && \
     echo "  → 添加 ubuntu-toolchain-r/test PPA..." && \
     add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
     echo "  → apt-get update..." && \
