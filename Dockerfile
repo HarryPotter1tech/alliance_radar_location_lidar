@@ -127,6 +127,7 @@ RUN echo "" && \
     echo "========================================" && \
     echo "  → cmake 配置 (Release)..." && \
     mkdir -p /tmp/livox_sdk2/build && cd /tmp/livox_sdk2/build && \
+    sed -i '6i set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pragmas -Wno-c++20-compat -include cstdint")' ../CMakeLists.txt && \
     cmake .. -DCMAKE_BUILD_TYPE=Release \
       || { echo "  [FAIL] Livox SDK2 cmake 配置失败"; exit 1; } && \
     echo "  → make 编译中 (-j$(nproc))..." && \
