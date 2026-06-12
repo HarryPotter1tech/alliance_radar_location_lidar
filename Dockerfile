@@ -12,13 +12,7 @@ RUN echo "" && \
       -e 's|http://archive.ubuntu.com|https://mirrors.tuna.tsinghua.edu.cn|g' \
       -e 's|http://security.ubuntu.com|https://mirrors.tuna.tsinghua.edu.cn|g' \
       /etc/apt/sources.list && \
-    echo "  → 替换 ROS2 源 (tuna 仅提供二进制包，去掉 deb-src)..." && \
-    for f in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do \
-      if [ -f "$f" ]; then \
-        sed -i 's|http://packages.ros.org/ros2|https://mirrors.tuna.tsinghua.edu.cn/ros2|g' "$f" && \
-        sed -i '/ros2.*deb-src/s/^deb/#deb/' "$f"; \
-      fi; \
-    done && \
+    rm -f /etc/apt/sources.list.d/*ros* /etc/apt/sources.list.d/*ros*.sources && \
     echo "  → apt-get update..." && \
     apt-get update && \
     echo "  [OK] apt 源已切换为 tuna 镜像"
