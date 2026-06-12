@@ -213,7 +213,7 @@ RUN echo "" && \
     echo "  → colcon build livox_ros_driver2 (Release, ROS2)..." && \
     colcon build \
       --packages-select livox_ros_driver2 \
-      --cmake-args -DCMAKE_BUILD_TYPE=Release -DROS_EDITION=ROS2 \
+      --cmake-args -DCMAKE_BUILD_TYPE=Release -DROS_EDITION=ROS2 -DDISTRO_ROS=humble \
       || { echo "  [FAIL] livox_ros_driver2 编译失败"; exit 1; }' && \
     echo "" && \
     echo "  [OK] livox_ros_driver2 编译完成"
