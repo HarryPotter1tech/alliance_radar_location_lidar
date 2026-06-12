@@ -1,0 +1,35 @@
+# 文档 & 学习资料 (不参与编译)
+docs/
+
+# ROS2 构建产物
+ros_ws/build/
+ros_ws/install/
+ros_ws/log/
+compile_commands.json
+
+# LiDAR 驱动构建产物
+lidar_ros_driver/build/
+lidar_ros_driver/install/
+lidar_ros_driver/log/
+
+# Git
+.git/
+**/.git/
+**/.gitmodules
+
+# IDE & 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.log
+*.tmp
+.clangd/
+
+# Docker 自己
+Dockerfile
+.dockerignore
+README.md
