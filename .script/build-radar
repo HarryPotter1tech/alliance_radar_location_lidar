@@ -9,7 +9,9 @@ BUILD_TYPE="${1:-Release}"
 cd "${RADAR_WS}/ros_ws"
 
 if [ -f /opt/ros/jazzy/setup.bash ]; then
+    set +u
     source /opt/ros/jazzy/setup.bash
+    set -u
 else
     echo "[ERROR] ROS2 Jazzy not found at /opt/ros/jazzy/setup.bash" >&2
     exit 1

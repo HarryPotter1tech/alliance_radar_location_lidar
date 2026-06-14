@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.3)
+cmake_minimum_required(VERSION 3.14)
 project(radar_localization_lidar)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,6 +19,7 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(small_gicp REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(assimp REQUIRED)
@@ -62,6 +63,7 @@ ament_target_dependencies(radar_localization_lidar_node
     hikcamera
     assimp
     Eigen3
+    ament_index_cpp
 )
   install(DIRECTORY config model
     DESTINATION ${PROJECT_NAME}
