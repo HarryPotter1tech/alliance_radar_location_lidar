@@ -1,0 +1,11 @@
+#!/bin/bash
+# format-radar - Format all C++ files in radar_localization_lidar
+set -euo pipefail
+
+: "${RADAR_WS:=/workspace}"
+
+SRC_DIR="${RADAR_WS}/ros_ws/src/radar_localization_lidar/src"
+echo "Formatting ${SRC_DIR}..."
+cd "${SRC_DIR}"
+find . -type f \( -name '*.cpp' -o -name '*.hpp' \) -print0 | xargs -0 -r clang-format -i
+echo "[OK] Formatted all .cpp and .hpp files."

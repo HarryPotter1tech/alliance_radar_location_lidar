@@ -1,0 +1,24 @@
+#!/bin/bash
+# run-radar - Run the radar node
+set -euo pipefail
+
+: "${RADAR_WS:=/workspace}"
+
+cd "${RADAR_WS}/ros_ws"
+
+if [ -f /opt/ros/jazzy/setup.bash ]; then
+    source /opt/ros/jazzy/setup.bash
+else
+    echo "[ERROR] ROS2 Jazzy not found at /opt/ros/jazzy/setup.bash" >&2
+    exit 1
+fi
+
+if [ -f install/setup.bash ]; then
+    source install/setup.bash
+else
+    echo "[ERROR] install/setup.bash not found. Run build-all or build-radar first." >&2
+    exit 1
+fi
+
+echo "[RUN] radar_localization_lidar_node..."
+ros2 run radar_localization_lidar radar_localization_lidar_node "$@"

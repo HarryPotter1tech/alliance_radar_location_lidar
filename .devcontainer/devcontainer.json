@@ -1,0 +1,33 @@
+{
+    "name": "RADAR-LOCATION-LIDAR",
+    "dockerComposeFile": [
+        "docker-compose.yml"
+    ],
+    "service": "radar-develop",
+    "workspaceFolder": "/workspace",
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "remote.autoForwardPorts": false,
+                "clangd.path": "/usr/bin/clangd",
+                "clangd.arguments": [
+                    "--compile-commands-dir=/workspace/ros_ws/build/radar_localization_lidar",
+                    "--header-insertion=never",
+                    "--clang-tidy"
+                ]
+            },
+            "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd",
+                "ms-python.vscode-pylance",
+                "ms-python.python",
+                "ms-python.debugpy",
+                "ms-vscode.cmake-tools",
+                "KylinIdeTeam.cmake-intellisence",
+                "streetsidesoftware.code-spell-checker",
+                "mhutchie.git-graph"
+            ]
+        }
+    },
+    "postCreateCommand": "bash /workspace/.devcontainer/post-create.sh",
+    "remoteUser": "ubuntu"
+}

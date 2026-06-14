@@ -2,3 +2,9 @@
 /ros_ws/install
 /ros_ws/log
 compile_commands.json
+
+# Docker
+.env
+
+# IDE
+.vscode/settings.json

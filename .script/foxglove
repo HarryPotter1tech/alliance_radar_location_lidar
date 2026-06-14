@@ -1,0 +1,9 @@
+#!/bin/bash
+# foxglove - Launch Foxglove Bridge
+set -euo pipefail
+
+: "${RADAR_WS:=/workspace}"
+
+source ~/env_setup.bash
+
+ros2 launch foxglove_bridge foxglove_bridge_launch.xml port:=8765

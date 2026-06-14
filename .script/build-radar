@@ -1,0 +1,23 @@
+#!/bin/bash
+# build-radar - Build radar_localization_lidar
+# Usage: build-radar [Release|Debug]
+set -euo pipefail
+
+: "${RADAR_WS:=/workspace}"
+
+BUILD_TYPE="${1:-Release}"
+cd "${RADAR_WS}/ros_ws"
+
+if [ -f /opt/ros/jazzy/setup.bash ]; then
+    source /opt/ros/jazzy/setup.bash
+else
+    echo "[ERROR] ROS2 Jazzy not found at /opt/ros/jazzy/setup.bash" >&2
+    exit 1
+fi
+
+echo "[BUILD] radar_localization_lidar (${BUILD_TYPE})..."
+colcon build \
+    --packages-select radar_localization_lidar \
+    --cmake-args -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+
+echo "[OK] Build complete. Source install/setup.bash to use."

@@ -24,38 +24,96 @@ reviews:
         - Structure: is the navigation logical for a new developer?
         - Markdown linting: proper code fences, table alignment, link validity.
 
-    - path: "script/**"
+    - path: "Dockerfile"
+      instructions: |
+        Review Dockerfile for:
+        - Multi-stage build correctness (radar-base → radar-develop).
+        - Layer caching: combine related RUN commands, avoid unnecessary cache busting.
+        - Multi-arch support: TARGETARCH handling for amd64/arm64.
+        - Security: no secrets in image, minimal attack surface.
+        - Hik MVS SDK installation: correct paths, cmake config generation.
+        - rosdep dependency resolution completeness.
+
+    - path: ".devcontainer/**"
+      instructions: |
+        Review devcontainer config for:
+        - Volume mounts: host ~/.opencode, ~/.codex, ~/.mimocode properly mounted.
+        - VSCode extensions: clangd, Python, CMake, git-graph included.
+        - post-create.sh: submodules init, first-time build, error handling.
+        - docker-compose.yml: privileged mode, device access, network config.
+
+    - path: ".script/**"
       instructions: |
         Review shell scripts for:
         - POSIX compatibility and bash best practices.
         - Proper quoting, error handling (`set -euo pipefail`).
         - PATH/source correctness inside the Docker container (/workspace paths).
-        - Suggest improvements for maintainability.
+        - Scripts should be idempotent and safe to re-run.
 
     - path: "ros_ws/src/radar_localization_lidar/src/**/*.cpp"
       instructions: |
-        Review C++ source files with these priorities:
-        1. C++23 modern features: use std::expected (already adopted), std::span,
-           std::format, std::ranges, std::mdspan, if consteval, deducing this.
-        2. ROS2 best practices: rclcpp lifecycle, parameter declaration,
-           QoS profiles, callback groups, executor selection.
-        3. Memory safety: prefer stack allocation, std::unique_ptr,
-           avoid raw new/delete; check PIMPL correctness.
-        4. Compile-time optimization opportunities: constexpr where possible,
-           static_assert for compile-time checks, template-if instead of runtime if.
-        5. Eigen usage: prefer Map over copy, check alignment with EIGEN_MAKE_ALIGNED_OPERATOR_NEW.
-        6. Error handling: use std::expected consistently, RCLCPP fallbacks.
-        7. Performance: reserve before loops, avoid unnecessary copies, prefer views.
+        Review C++ source files from modern C++ and design patterns perspective:
+
+        ## Modern C++ (C++23)
+        1. std::expected for error handling (project standard), std::optional, std::variant.
+        2. std::format over printf/cout/sprintf for string formatting.
+        3. std::span for non-owning array views, std::ranges for algorithm composition.
+        4. Designated initializers, structured bindings, if-init statements.
+        5. constexpr / consteval where computation can happen at compile time.
+        6. Deducing this (explicit object parameter) for CRTP simplification.
+        7. std::expected<T,E> as return type — never use error codes or exceptions for business logic.
+
+        ## Design Patterns
+        1. PIMPL (already used): verify complete implementation in .cpp, no leaking of impl details.
+        2. RAII: all resources (memory, file handles, ROS subscriptions) must have owning wrappers.
+        3. Strategy pattern: configurable algorithms (e.g., point cloud processing) should use std::function or template policy, not runtime if-else chains.
+        4. Observer: ROS callbacks should be lightweight; decouple data reception from processing.
+        5. Builder: complex object construction (model loading, sensor config) should use builder or named parameters.
+        6. CRTP vs virtual: prefer CRTP for compile-time polymorphism in hot paths, virtual only for runtime-polymorphic interfaces.
+
+        ## Memory & Performance
+        1. Eigen: prefer Map over copy, check alignment, avoid dynamic allocation in tight loops.
+        2. reserve() before known-size loops, emplace_back over push_back.
+        3. Move semantics: return value optimization, std::move for ownership transfer.
+        4. Cache-friendly data layouts: SoA over AoS for large arrays processed in parallel.
+
+        ## ROS2 Specific
+        1. Lifecycle nodes for state management, parameter declaration at construction.
+        2. QoS profiles matched between publisher/subscriber.
+        3. Callback groups for concurrency control, avoid blocking callbacks.
+
+        ## Error Handling
+        1. std::expected consistently — no raw error codes mixed with std::expected.
+        2. Fail fast with descriptive messages, no silent swallowing of errors.
+        3. [[nodiscard]] on all functions whose return values must not be ignored.
 
     - path: "ros_ws/src/radar_localization_lidar/src/**/*.hpp"
       instructions: |
-        Review C++ header files with these priorities:
-        1. Forward declarations to minimize includes (especially in PIMPL pattern).
-        2. noexcept correctness on constructors, destructors, and getters.
-        3. [[nodiscard]] on all functions returning values that shouldn't be ignored.
-        4. const-correctness on member functions and parameters.
-        5. C++23: use std::expected for return types, explicit this parameters if useful.
-        6. Header guard consistency and include ordering.
+        Review C++ header files from modern C++ and design patterns perspective:
+
+        ## Interface Design
+        1. Single Responsibility: each header should have one clear purpose.
+        2. Minimal includes: forward-declare what you can, especially in PIMPL pattern.
+        3. Dependency Inversion: depend on abstractions (interfaces) not concretions.
+        4. Interface segregation: split large interfaces into focused ones.
+
+        ## Modern C++ Correctness
+        1. #pragma once or include guards — no exceptions.
+        2. noexcept on destructors, move constructors, move assignment.
+        3. [[nodiscard]] on all non-void return functions.
+        4. const-correctness: const member functions, const references for read-only params.
+        5. Rule of Zero/Five: if class manages resources, declare all five; if not, declare none.
+        6. std::expected<T,E> for return types, not std::optional with side-effect error reporting.
+
+        ## Template & Generic Programming
+        1. Concepts (C++20) for constraining template parameters where appropriate.
+        2. SFINAE / if-constexpr for compile-time dispatch, not runtime type checking.
+        3. constexpr functions for compile-time computable logic.
+
+        ## Header Organization
+        1. Include order: own header → C++ std → third-party → project headers.
+        2. Avoid circular dependencies via forward declarations and dependency inversion.
+        3. PIMPL: class definition has only forward-declared Impl, no impl details in header.
 
     - path: "ros_ws/src/radar_localization_lidar/CMakeLists.txt"
       instructions: |
@@ -65,6 +123,7 @@ reviews:
         - Build type separation: Release vs Debug flags correctness.
         - Compile option propagation with generator expressions.
         - ROS2 ament conventions compliance.
+        - No duplicate link targets between target_link_libraries and ament_target_dependencies.
 
     - path: "ros_ws/src/radar_localization_lidar/config/**/*.yaml"
       instructions: |
@@ -84,6 +143,3 @@ reviews:
 
 chat:
   auto_reply: true
-
-
-    # test comment

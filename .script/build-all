@@ -1,0 +1,26 @@
+#!/bin/bash
+# build-all - Build all packages (third-party + main)
+# Usage: build-all [Release|Debug]
+set -euo pipefail
+
+: "${RADAR_WS:=/workspace}"
+
+BUILD_TYPE="${1:-Release}"
+cd "${RADAR_WS}/ros_ws"
+
+if [ -f /opt/ros/jazzy/setup.bash ]; then
+    source /opt/ros/jazzy/setup.bash
+else
+    echo "[ERROR] ROS2 Jazzy not found at /opt/ros/jazzy/setup.bash" >&2
+    exit 1
+fi
+
+echo "[BUILD] third-party (small_gicp + hikcamera)..."
+colcon build --packages-select small_gicp hikcamera \
+    --cmake-args -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Wno-dev
+
+echo "[BUILD] radar_localization_lidar..."
+colcon build --packages-select radar_localization_lidar \
+    --cmake-args -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+
+echo "[OK] All packages built."

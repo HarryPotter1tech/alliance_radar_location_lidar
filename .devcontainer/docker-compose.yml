@@ -1,0 +1,37 @@
+services:
+  radar-develop:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: radar-develop
+      args:
+        TARGETARCH: ${TARGETARCH:-amd64}
+    user: "1000:1000"
+    privileged: true
+    volumes:
+      # Project source (bind mount)
+      - type: bind
+        source: ..
+        target: /workspace
+      # Device access
+      - type: bind
+        source: /dev
+        target: /dev
+      # X11 display
+      - type: bind
+        source: /tmp/.X11-unix
+        target: /tmp/.X11-unix
+      # Host opencode config (any device's ~/.opencode)
+      - ${HOME}/.opencode:/home/ubuntu/.opencode:cached
+      # Host codex config
+      - ${HOME}/.codex:/home/ubuntu/.codex:cached
+      # Host mimocode config
+      - ${HOME}/.mimocode:/home/ubuntu/.mimocode:cached
+      # Host XDG config (optional, for shared tool settings)
+      - ${HOME}/.config/opencode:/home/ubuntu/.config/opencode:cached
+    environment:
+      - DISPLAY=${DISPLAY}
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY}
+    network_mode: host
+    tty: true
+    stdin_open: true
