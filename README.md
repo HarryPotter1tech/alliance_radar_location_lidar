@@ -91,13 +91,6 @@ docker exec -it RADAR zsh
 | `run-radar` | 运行雷达节点 |
 | `format-radar` | 格式化 C++ 源文件 |
 
-也可以直接调用旧脚本：
-
-```bash
-bash /workspace/script/build_pure.sh Release
-bash /workspace/script/build_run.sh Debug
-```
-
 ### clangd 配置
 
 构建脚本已内置 `-DCMAKE_EXPORT_COMPILE_COMMANDS=1`，编译后在 `/workspace/ros_ws/build/radar_localization_lidar/` 生成 `compile_commands.json`，clangd 自动读取。
@@ -170,7 +163,6 @@ RADAR-LOCATION-LIDAR/
 │   ├── src/radar_localization_lidar/  # 主包
 │   └── third-party/        # small_gicp, ros2-hikcamera
 ├── lidar_ros_driver/       # LiDAR 驱动（git submodules）
-├── script/                 # 旧版编译运行脚本
 ├── docs/                   # SLAM 学习资料
 └── README.md
 ```
