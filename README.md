@@ -91,7 +91,7 @@ docker exec -it RADAR zsh
 | `build-radar [Release\|Debug]` | 仅编译 radar_localization_lidar |
 | `run-radar` | 运行雷达节点 |
 | `format-radar` | 格式化 C++ 源文件 |
-| `banner.sh` | 显示 ALLIANCE RADAR ASCII art |
+| `banner` | 显示 ALLIANCE RADAR ASCII art |
 
 ### clangd 配置
 
@@ -160,7 +160,7 @@ RADAR-LOCATION-LIDAR/
 │   ├── build-all           # 编译所有包
 │   ├── run-radar           # 运行节点
 │   ├── format-radar        # 格式化代码
-│   ├── banner.sh           # ASCII art banner
+│   ├── banner              # ASCII art banner
 │   ├── ow_logo.txt         # Overwatch 风格 logo
 │   └── template/           # 环境变量模板
 ├── ros_ws/                 # ROS2 工作空间

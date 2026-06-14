@@ -16,7 +16,9 @@ else
 fi
 
 if [ -f install/setup.bash ]; then
+    set +u
     source install/setup.bash
+    set -u
 else
     echo "[ERROR] install/setup.bash not found. Run build-all or build-radar first." >&2
     exit 1

@@ -56,7 +56,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Hik MVS SDK (multi-arch)
-COPY docker/scripts/gen_mvs_cmake.sh /tmp/gen_mvs_cmake.sh
+COPY .script/gen_mvs_cmake.sh /tmp/gen_mvs_cmake.sh
 RUN chmod +x /tmp/gen_mvs_cmake.sh && /tmp/gen_mvs_cmake.sh && rm /tmp/gen_mvs_cmake.sh
 
 # Livox SDK2
