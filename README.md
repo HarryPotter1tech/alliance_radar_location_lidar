@@ -167,6 +167,7 @@ RADAR-LOCATION-LIDAR/
 │   ├── src/radar_localization_lidar/  # 主包
 │   └── third-party/        # small_gicp, ros2-hikcamera, direct_visual_lidar_calibration
 ├── lidar_ros_driver/       # LiDAR 驱动（git submodules）
+│   └── * Livox 驱动使用 fork 版本以支持 Mid-70（上游 SDK2 暂未提供），维护者 @Yukikaze2233
 ├── docs/                   # SLAM 学习资料
 └── README.md
 ```
