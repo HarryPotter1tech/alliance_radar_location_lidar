@@ -9,13 +9,13 @@
 	url = https://github.com/manifoldsdk/odin_ros_driver.git
 [submodule "lidar_ros_driver/livox_ros_driver2"]
 	path = lidar_ros_driver/livox_ros_driver2
-	url = https://github.com/Livox-SDK/livox_ros_driver2.git
+	url = https://github.com/Yukikaze2233/livox_ros_driver2.git
 [submodule "ros_ws/third-party/ros2-hikcamera"]
 	path = ros_ws/third-party/ros2-hikcamera
 	url = https://github.com/HarryPotter1tech/ros2-hikcamera-radar.git
 [submodule "lidar_ros_driver/livox_sdk2"]
 	path = lidar_ros_driver/livox_sdk2
-	url = https://github.com/Livox-SDK/Livox-SDK2.git
+	url = https://github.com/Yukikaze2233/Livox-SDK2.git
 [submodule "ros_ws/third-party/direct_visual_lidar_calibration"]
 	path = ros_ws/third-party/direct_visual_lidar_calibration
 	url = https://github.com/koide3/direct_visual_lidar_calibration.git

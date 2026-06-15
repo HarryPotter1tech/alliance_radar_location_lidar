@@ -68,7 +68,7 @@ COPY .script/gen_mvs_cmake.sh /tmp/gen_mvs_cmake.sh
 RUN chmod +x /tmp/gen_mvs_cmake.sh && /tmp/gen_mvs_cmake.sh && rm /tmp/gen_mvs_cmake.sh
 
 # Livox SDK2
-RUN git clone https://github.com/Livox-SDK/Livox-SDK2.git /tmp/Livox-SDK2 \
+RUN git clone https://github.com/Yukikaze2233/Livox-SDK2.git /tmp/Livox-SDK2 \
     && cd /tmp/Livox-SDK2 \
     && sed -i '6iset(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pragmas -Wno-c++20-compat -include cstdint")' CMakeLists.txt \
     && mkdir build && cd build \
