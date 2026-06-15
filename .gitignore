@@ -3,6 +3,11 @@
 /ros_ws/log
 compile_commands.json
 
+# Build artifacts (root level)
+/build/
+/install/
+/log/
+
 # Docker
 .env
 
