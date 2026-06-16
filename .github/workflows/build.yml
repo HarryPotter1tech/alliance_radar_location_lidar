@@ -1,0 +1,46 @@
+name: Build & Format Check
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ros:jazzy
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install system deps
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            libopencv-dev libassimp-dev libeigen3-dev \
+            libzmq3-dev libyaml-cpp-dev libomp-dev \
+            clang-format
+          rosdep update
+          rosdep install --from-paths ros_ws/src --ignore-src -r -y
+
+      - name: Build third-party (small_gicp + hikcamera)
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          cd ros_ws
+          colcon build --packages-select small_gicp hikcamera \
+            --cmake-args -DCMAKE_BUILD_TYPE=Release -Wno-dev
+
+      - name: Build radar_localization_lidar
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          cd ros_ws
+          source install/setup.bash
+          colcon build --packages-select radar_localization_lidar \
+            --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+      - name: Format check (clang-format)
+        run: |
+          find ros_ws/src/radar_localization_lidar/src \
+            -type f \( -name '*.cpp' -o -name '*.hpp' \) \
+            -print0 | xargs -0 clang-format --dry-run --Werror
