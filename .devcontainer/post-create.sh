@@ -51,6 +51,7 @@ fi
 
 # Sync build scripts to ~/.script/
 if [ -d /workspace/.script ]; then
+    mkdir -p ~/.script/
     cp -f /workspace/.script/* ~/.script/
     chmod +x ~/.script/*
     echo "[OK] Build scripts synced to ~/.script/"
