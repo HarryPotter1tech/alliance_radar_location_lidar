@@ -49,5 +49,12 @@ if [ "$NEED_BUILD" = true ]; then
         --cmake-args -DCMAKE_BUILD_TYPE=Release -Wno-dev
 fi
 
+# Sync build scripts to ~/.script/
+if [ -d /workspace/.script ]; then
+    cp -f /workspace/.script/* ~/.script/
+    chmod +x ~/.script/*
+    echo "[OK] Build scripts synced to ~/.script/"
+fi
+
 echo ""
 echo "[OK] post-create complete. Ready to develop."

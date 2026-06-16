@@ -1,0 +1,26 @@
+#!/bin/bash
+# clean-radar - 清理构建产物
+set -euo pipefail
+
+: "${RADAR_WS:=/workspace}"
+
+# 安全检查：防止 rm -rf 作用到空路径或根目录
+if [[ -z "${RADAR_WS}" || "${RADAR_WS}" == "/" ]]; then
+    echo "[ERROR] Invalid RADAR_WS: '${RADAR_WS}'" >&2
+    exit 1
+fi
+
+echo "[CLEAN] Removing build artifacts..."
+rm -rf -- \
+    "${RADAR_WS}/ros_ws/build" \
+    "${RADAR_WS}/ros_ws/install" \
+    "${RADAR_WS}/ros_ws/log"
+
+# 同时清理根级构建产物（Livox 驱动构建产生的）
+rm -rf -- \
+    "${RADAR_WS}/build" \
+    "${RADAR_WS}/install" \
+    "${RADAR_WS}/log" \
+    2>/dev/null || true
+
+echo "[OK] Clean complete."
