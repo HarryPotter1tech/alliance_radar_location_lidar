@@ -1,0 +1,14 @@
+radar_lidar_node:
+  ros__parameters:
+    map_path: ""
+    scan_topic: "/odin1/cloud_raw"
+    hardware_id: "odin1"
+    dynamic_distance_threshold: 0.1
+    initial_pose_enabled: false
+    initial_pose_tx: 0.0
+    initial_pose_ty: 0.0
+    initial_pose_tz: 0.0
+    initial_pose_roll: 0.0
+    initial_pose_pitch: 0.0
+    initial_pose_yaw: 0.0
+    use_odin_relocalization_tf: false

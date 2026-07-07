@@ -8,7 +8,24 @@
 #include "radar_lidar/geometry_utils.hpp"
 #include "radar_lidar/map_data.hpp"
 
-namespace radar {
+namespace radar::lidar {
+
+namespace {
+
+    [[nodiscard]] auto in_tdt_localization_roi(const Eigen::Vector3d& point) -> bool {
+        return point.x() > 5.0 && point.x() < 30.0 && point.y() > -10.0 && point.y() < 8.0
+            && point.z() < 7.0;
+    }
+
+    [[nodiscard]] auto filter_tdt_localization_roi(const types::PointCloud& points)
+        -> types::PointCloud {
+        return points
+            | std::views::filter(
+                [](const auto& point) { return in_tdt_localization_roi(point); })
+            | std::ranges::to<types::PointCloud>();
+    }
+
+} // namespace
 
 LocalizationStage::LocalizationStage(
     std::shared_ptr<const MapData> map, config::LocalizationConfig cfg)
@@ -38,35 +55,32 @@ LocalizationStage::LocalizationStage(
 }
 
 auto LocalizationStage::preprocess(const types::Frame& scan) -> types::PointCloud {
-    // ROI 裁剪
-    auto roi_points = geom::clip_roi_aabb(scan.points, cfg_.roi);
-
     if (!cfg_.use_spherical_grid && cfg_.accumulate_frames == 0) {
-        return roi_points;
+        return filter_tdt_localization_roi(scan.points);
     }
 
     // 帧累积
     if (cfg_.accumulate_frames > 0) {
-        accumulator_.push(roi_points);
+        accumulator_.push(scan.points);
         auto accumulated = accumulator_.all_points();
 
         // 球面网格预处理
         if (cfg_.use_spherical_grid) {
             spherical_grid_.clear();
             spherical_grid_.add(accumulated);
-            return spherical_grid_.extract();
+            return filter_tdt_localization_roi(spherical_grid_.extract());
         }
-        return accumulated;
+        return filter_tdt_localization_roi(accumulated);
     }
 
     // 只球面网格，不累积
     if (cfg_.use_spherical_grid) {
         spherical_grid_.clear();
-        spherical_grid_.add(roi_points);
-        return spherical_grid_.extract();
+        spherical_grid_.add(scan.points);
+        return filter_tdt_localization_roi(spherical_grid_.extract());
     }
 
-    return roi_points;
+    return filter_tdt_localization_roi(scan.points);
 }
 
 auto LocalizationStage::process(const types::Frame& scan)
@@ -126,4 +140,4 @@ auto LocalizationStage::process(const types::Frame& scan)
     return out;
 }
 
-} // namespace radar
+} // namespace radar::lidar

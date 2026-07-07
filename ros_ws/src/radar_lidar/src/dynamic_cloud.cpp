@@ -8,7 +8,48 @@
 
 #include "radar_lidar/geometry_utils.hpp"
 
-namespace radar {
+namespace radar::lidar {
+
+namespace {
+
+    [[nodiscard]] constexpr auto exclusion_zone_half_width(double width) -> double {
+        return width / std::numbers::sqrt2;
+    }
+
+    [[nodiscard]] auto in_tdt_dynamic_main_roi(const Eigen::Vector3d& point) -> bool {
+        return point.x() >= 3.0 && point.x() <= 28.0 && point.y() >= 0.0 && point.y() <= 15.0
+            && point.z() >= 0.0 && point.z() <= 1.4;
+    }
+
+    [[nodiscard]] auto in_tdt_dynamic_corner_exclusion(const Eigen::Vector3d& point) -> bool {
+        return point.y() > 0.0 && point.y() < 5.0 && point.x() > 25.0;
+    }
+
+    [[nodiscard]] auto in_tdt_dynamic_slope_exclusion(const Eigen::Vector3d& point) -> bool {
+        constexpr double x_plus_y_center           = 21.5;
+        constexpr double x_plus_y_half_width       = exclusion_zone_half_width(2.9);
+        constexpr double y_minus_x_center          = -6.5;
+        constexpr double y_minus_x_half_width      = exclusion_zone_half_width(0.9);
+        const double point_x_plus_y                = point.x() + point.y();
+        const double point_y_minus_x               = point.y() - point.x();
+        return (x_plus_y_center - x_plus_y_half_width) < point_x_plus_y
+            && point_x_plus_y < (x_plus_y_center + x_plus_y_half_width)
+            && (y_minus_x_center - y_minus_x_half_width) < point_y_minus_x
+            && point_y_minus_x < (y_minus_x_center + y_minus_x_half_width);
+    }
+
+    [[nodiscard]] auto keep_tdt_dynamic_point(const Eigen::Vector3d& point) -> bool {
+        return in_tdt_dynamic_main_roi(point) && !in_tdt_dynamic_corner_exclusion(point)
+            && !in_tdt_dynamic_slope_exclusion(point);
+    }
+
+    [[nodiscard]] auto filter_tdt_dynamic_roi(const types::PointCloud& points) -> types::PointCloud {
+        return points
+            | std::views::filter([](const auto& point) { return keep_tdt_dynamic_point(point); })
+            | std::ranges::to<types::PointCloud>();
+    }
+
+} // namespace
 
 DynamicCloudStage::DynamicCloudStage(DynamicCloudConfig cfg)
     : cfg_(std::move(cfg))
@@ -37,8 +78,7 @@ auto DynamicCloudStage::process(const types::PointCloud& scan)
         return std::unexpected("Empty scan for DynamicCloudStage");
     }
 
-    // ROI 裁剪
-    auto roi_points = geom::clip_roi_aabb(scan, cfg_.roi);
+    auto roi_points = filter_tdt_dynamic_roi(scan);
 
     if (roi_points.empty()) {
         return types::PointCloud { };
@@ -90,4 +130,4 @@ auto DynamicCloudStage::accumulated() const -> types::PointCloud {
     return frames_ | std::views::join | std::ranges::to<types::PointCloud>();
 }
 
-} // namespace radar
+} // namespace radar::lidar

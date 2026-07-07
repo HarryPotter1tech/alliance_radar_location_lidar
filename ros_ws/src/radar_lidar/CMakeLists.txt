@@ -62,6 +62,7 @@ if(BUILD_TESTING)
   ament_add_gtest(radar_tests
       test/test_map_data.cpp
       test/test_localization.cpp
+      test/test_localization_roi.cpp
       test/test_detection.cpp
       test/test_offline_visualization.cpp
   )
