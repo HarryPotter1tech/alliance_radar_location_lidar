@@ -9,31 +9,12 @@
 
 #include "radar_lidar/geometry_utils.hpp"
 
-namespace radar {
+namespace radar::lidar {
 
 namespace {
 
     auto load_localization_config(rclcpp::Node& node) -> config::LocalizationConfig {
         config::LocalizationConfig cfg;
-        node.get_parameter("gicp_num_threads", cfg.num_threads);
-        node.get_parameter("gicp_max_corr_distance", cfg.max_corr_distance);
-        node.get_parameter("gicp_max_iterations", cfg.max_iterations);
-        node.get_parameter("gicp_use_spherical_grid", cfg.use_spherical_grid);
-        node.get_parameter("gicp_spherical_grid_deg", cfg.spherical_grid_deg);
-        node.get_parameter("gicp_accumulate_frames", cfg.accumulate_frames);
-        node.get_parameter("gicp_use_lock_strategy", cfg.use_lock_strategy);
-        node.get_parameter("gicp_lock_fitness", cfg.lock_fitness);
-        node.get_parameter("gicp_use_roi", cfg.roi.use_roi);
-        node.get_parameter("gicp_roi_x_min", cfg.roi.x_min);
-        node.get_parameter("gicp_roi_x_max", cfg.roi.x_max);
-        node.get_parameter("gicp_roi_y_min", cfg.roi.y_min);
-        node.get_parameter("gicp_roi_y_max", cfg.roi.y_max);
-        node.get_parameter("gicp_roi_z_min", cfg.roi.z_min);
-        node.get_parameter("gicp_roi_z_max", cfg.roi.z_max);
-        node.get_parameter("gicp_voxel_leaf_size", cfg.voxel_leaf_size);
-        node.get_parameter("gicp_rotation_eps", cfg.rotation_eps);
-        node.get_parameter("gicp_translation_eps", cfg.translation_eps);
-        node.get_parameter("gicp_verbose", cfg.verbose);
         node.get_parameter("initial_pose_enabled", cfg.has_initial_pose);
         node.get_parameter("initial_pose_tx", cfg.initial_tx);
         node.get_parameter("initial_pose_ty", cfg.initial_ty);
@@ -47,23 +28,11 @@ namespace {
     auto load_dynamic_config(rclcpp::Node& node) -> DynamicCloudConfig {
         DynamicCloudConfig cfg;
         node.get_parameter("dynamic_distance_threshold", cfg.distance_threshold);
-        node.get_parameter("dynamic_num_threads", cfg.num_threads);
-        node.get_parameter("dynamic_accumulate_frames", cfg.accumulate_frames);
-        node.get_parameter("dynamic_use_roi", cfg.roi.use_roi);
-        node.get_parameter("dynamic_roi_x_min", cfg.roi.x_min);
-        node.get_parameter("dynamic_roi_x_max", cfg.roi.x_max);
-        node.get_parameter("dynamic_roi_y_min", cfg.roi.y_min);
-        node.get_parameter("dynamic_roi_y_max", cfg.roi.y_max);
-        node.get_parameter("dynamic_roi_z_min", cfg.roi.z_min);
-        node.get_parameter("dynamic_roi_z_max", cfg.roi.z_max);
         return cfg;
     }
 
-    auto load_cluster_config(rclcpp::Node& node) -> ClusterConfig {
+    auto load_cluster_config([[maybe_unused]] rclcpp::Node& node) -> ClusterConfig {
         ClusterConfig cfg;
-        node.get_parameter("cluster_tolerance", cfg.cluster_tolerance);
-        node.get_parameter("cluster_min_size", cfg.min_cluster_size);
-        node.get_parameter("cluster_max_size", cfg.max_cluster_size);
         return cfg;
     }
 
@@ -80,8 +49,6 @@ LidarPipeline::LidarPipeline()
     // ── node params ────────────────────────────────────────────────
     get_parameter("scan_topic", scan_topic_);
     get_parameter("hardware_id", hardware_id_);
-    get_parameter("output_frame", output_frame_);
-    get_parameter("detection_enabled", detection_enabled_);
     get_parameter_or("use_odin_relocalization_tf", use_odin_relocalization_tf_, false);
 
     if (use_odin_relocalization_tf_) {
@@ -125,6 +92,7 @@ LidarPipeline::LidarPipeline()
     pub_clusters_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/lidar/cluster", 10);
     pub_cluster_viz_ =
         this->create_publisher<visualization_msgs::msg::MarkerArray>("/lidar/cluster_viz", 10);
+    tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
     RCLCPP_INFO(get_logger(), "radar_lidar ready. Listening on %s (detection=%s)",
         scan_topic_.c_str(), detection_enabled_ ? "ON" : "OFF");
@@ -251,6 +219,27 @@ void LidarPipeline::publish_pose(const types::PoseEstimate& pose, types::Timesta
         pose.covariance;
 
     pub_pose_->publish(msg);
+    publish_dynamic_tf(pose, stamp);
+}
+
+void LidarPipeline::publish_dynamic_tf(const types::PoseEstimate& pose, types::Timestamp stamp) {
+    geometry_msgs::msg::TransformStamped transform_msg;
+    transform_msg.header.stamp    = rclcpp::Time(stamp);
+    transform_msg.header.frame_id = output_frame_;
+    transform_msg.child_frame_id  = "radar_base";
+
+    const auto& transform = pose.t_map_lidar;
+    transform_msg.transform.translation.x = transform.translation().x();
+    transform_msg.transform.translation.y = transform.translation().y();
+    transform_msg.transform.translation.z = transform.translation().z();
+
+    const Eigen::Quaterniond rotation(transform.rotation());
+    transform_msg.transform.rotation.x = rotation.x();
+    transform_msg.transform.rotation.y = rotation.y();
+    transform_msg.transform.rotation.z = rotation.z();
+    transform_msg.transform.rotation.w = rotation.w();
+
+    tf_broadcaster_->sendTransform(transform_msg);
 }
 
 void LidarPipeline::publish_diagnostics(
@@ -380,4 +369,4 @@ void LidarPipeline::publish_clusters(
     pub_cluster_viz_->publish(markers);
 }
 
-} // namespace radar
+} // namespace radar::lidar

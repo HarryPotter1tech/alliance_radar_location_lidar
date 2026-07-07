@@ -9,6 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 #include <visualization_msgs/msg/marker_array.hpp>
 
@@ -19,7 +20,7 @@
 #include "radar_lidar/map_data.hpp"
 #include "radar_lidar/types.hpp"
 
-namespace radar {
+namespace radar::lidar {
 
 class LidarPipeline : public rclcpp::Node {
 public:
@@ -28,6 +29,7 @@ public:
 private:
     void on_scan(const sensor_msgs::msg::PointCloud2::SharedPtr& msg);
     void publish_pose(const types::PoseEstimate& pose, types::Timestamp stamp);
+    void publish_dynamic_tf(const types::PoseEstimate& pose, types::Timestamp stamp);
     void publish_diagnostics(const types::PoseEstimate& pose, double elapsed_ms, uint64_t frame);
     void publish_dynamic(const types::PointCloud& dynamic_points, types::Timestamp stamp);
     void publish_clusters(const std::vector<ClusterResult>& clusters, types::Timestamp stamp);
@@ -60,6 +62,7 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_dynamic_;
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_clusters_;
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr pub_cluster_viz_;
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -69,4 +72,4 @@ private:
     bool was_odin_relocalized_ { false };
 };
 
-} // namespace radar
+} // namespace radar::lidar
