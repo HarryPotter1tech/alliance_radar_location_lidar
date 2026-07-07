@@ -10,7 +10,8 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -27,13 +28,19 @@ def generate_launch_description():
     )
     radar_params_arg = DeclareLaunchArgument(
         "radar_params",
-        default_value=os.path.join(radar_dir, "config", "odin.yaml"),
-        description="radar_lidar parameter YAML (sensor-specific)",
+        default_value=os.path.join(radar_dir, "config", "runtime.yaml"),
+        description="radar_lidar runtime parameter YAML",
     )
     odin_config_arg = DeclareLaunchArgument(
         "odin_config",
         default_value=os.path.join(bringup_dir, "config", "lidar", "odin_driver.yaml"),
         description="Odin driver control_command.yaml",
+    )
+
+    static_tf_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(bringup_dir, "launch", "static_tf.launch.py")
+        )
     )
 
     # ── Odin driver ─────────────────────────────────────────────
@@ -56,6 +63,8 @@ def generate_launch_description():
         parameters=[
             LaunchConfiguration("radar_params"),
             {"map_path": LaunchConfiguration("map_path")},
+            {"scan_topic": "/odin1/cloud_raw"},
+            {"hardware_id": "odin1"},
         ],
     )
 
@@ -63,6 +72,7 @@ def generate_launch_description():
         map_path_arg,
         radar_params_arg,
         odin_config_arg,
+        static_tf_launch,
         odin_node,
         radar_node,
     ])

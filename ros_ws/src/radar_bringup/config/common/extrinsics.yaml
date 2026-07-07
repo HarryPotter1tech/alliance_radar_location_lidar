@@ -1,0 +1,18 @@
+static_transforms:
+  radar_base_to_lidar:
+    parent: "radar_base"
+    child: "lidar_link"
+    translation: {x: 0.0, y: 0.0, z: 0.0}
+    rotation: {qx: 0.0, qy: 0.0, qz: 0.0, qw: 1.0}
+
+  radar_base_to_camera:
+    parent: "radar_base"
+    child: "camera_link"
+    translation: {x: 0.0, y: 0.0, z: 0.0}
+    rotation: {qx: 0.0, qy: 0.0, qz: 0.0, qw: 1.0}
+
+  camera_to_optical:
+    parent: "camera_link"
+    child: "camera_optical_frame"
+    translation: {x: 0.0, y: 0.0, z: 0.0}
+    rotation: {qx: -0.5, qy: 0.5, qz: -0.5, qw: 0.5}

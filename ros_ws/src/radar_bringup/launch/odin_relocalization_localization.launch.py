@@ -15,7 +15,8 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -36,8 +37,8 @@ def generate_launch_description():
     )
     radar_params_arg = DeclareLaunchArgument(
         "radar_params",
-        default_value=os.path.join(radar_dir, "config", "odin_relocalization.yaml"),
-        description="radar_lidar 参数 YAML",
+        default_value=os.path.join(radar_dir, "config", "runtime.yaml"),
+        description="radar_lidar 运行时参数 YAML",
     )
     odin_config_arg = DeclareLaunchArgument(
         "odin_config",
@@ -45,6 +46,12 @@ def generate_launch_description():
             bringup_dir, "config", "lidar", "odin_driver_relocalization.yaml"
         ),
         description="Odin 驱动 control_command.yaml（重定位模式）",
+    )
+
+    static_tf_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(bringup_dir, "launch", "static_tf.launch.py")
+        )
     )
 
     odin_node = Node(
@@ -66,6 +73,9 @@ def generate_launch_description():
         parameters=[
             LaunchConfiguration("radar_params"),
             {"map_path": LaunchConfiguration("map_path")},
+            {"scan_topic": "/odin1/cloud_raw"},
+            {"hardware_id": "odin1"},
+            {"use_odin_relocalization_tf": True},
         ],
     )
 
@@ -74,6 +84,7 @@ def generate_launch_description():
         relocalization_map_path_arg,
         radar_params_arg,
         odin_config_arg,
+        static_tf_launch,
         odin_node,
         radar_node,
     ])
