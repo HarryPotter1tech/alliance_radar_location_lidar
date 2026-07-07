@@ -2,18 +2,53 @@
 
 更新时间：2026-07-05
 
+## TF Authority 设计定稿（2026-07-06）
+
+面向 Foxglove / RViz 的统一 frame 可视化需求，系统内坐标关系职责拆分如下：
+
+- [x] **`radar_bringup` 只负责 static tf**：已知且固定的刚体安装关系 / 外参，
+      如 `radar_base -> lidar_link`、`radar_base -> camera_link`、
+      `camera_link -> camera_optical_frame`。`radar_bringup` 维持“纯 YAML + launch”
+      边界，不承担运行时状态。
+- [x] **`LidarPipeline` 当前阶段负责临时 dynamic tf**：在系统尚未拥有真正融合后的
+      ego pose 前，由 LiDAR 主位姿来源发布 `map -> radar_base`（或过渡期
+      `map -> lidar_link`）。
+- [x] **`FusionNode` 最终接管唯一系统级 dynamic tf authority**：当
+      `/localization/pose` 不再是 LiDAR pose passthrough，而是多源融合后的系统
+      最终位姿时，由 `FusionNode` 统一发布 `map -> radar_base`。
+- [x] **目标观测/轨迹不进 tf**：`/lidar/dynamic`、`/lidar/cluster`、`/fusion/tracks`
+      以及未来 `/camera/detection` 继续走 topic；tf 只表达 frame 之间的刚体关系。
+- [x] **配置归属定稿**：
+      - 相机标定前粗略初值 → `radar_calibration/config/initial_guess.yaml`
+      - 相机正式外参 → `radar_camera/config/extrinsic.yaml`
+      - LiDAR / Odin 启动先验 → `radar_bringup/config/lidar/*.yaml`
+      - LiDAR 离线配准调试参数 → `radar_lidar/config/offline_registration.yaml`
+      - GICP / Odin1 重定位得到的 `t_map_lidar` / `map -> radar_base` → 运行时动态结果，
+        不落成 calibration 风格 YAML
+
+后续实施待办：
+- [x] 在 architecture 文档基础上补一版具体 frame 名字与 `frame_id` 约束清单
+      （`map` / `radar_base` / `lidar_link` / `camera_link` / `camera_optical_frame`）
+- [x] 在 architecture 文档中补最终 bringup 启动图与阶段划分（离线一次性准备 /
+      每场次启动前配置 / 主进程运行时），并明确拒绝“先 GICP、写外参 YAML、再启动主进程”
+      作为主流程
+- [x] `radar_bringup` launch 中加入 static tf 发布器（已落 `static_tf.launch.py` + `extrinsics.yaml`）
+- [x] `LidarPipeline` 增加 dynamic tf broadcaster（当前阶段 authority，当前发布 `map -> radar_base`）
+- [ ] `FusionNode` 从 pose relay 演进为真正多源 pose fusion 后，接管 dynamic tf
+- [x] 明确 `/fusion/tracks`（radar-only）与 `/fusion/fused_tracks`（final fused）双轨迹契约，并补充 dynamic tf authority handoff 条件
+
 ## Odin1 内置重定位集成（2026-07-05 完成）
 
 架构决策：Odin1 内置重定位为主位姿源，`radar_lidar` 自研 GICP 保留作为重定位
-未收敛时的回退，通过 YAML 参数切换，不影响现有 `odin.yaml`/`mid70.yaml` 行为。
+未收敛时的回退。当前比赛运行时参数统一收敛到 `runtime.yaml`，重定位模式由 bringup launch 覆盖 `use_odin_relocalization_tf`。
 
 - [x] `LidarPipeline` 新增 `use_odin_relocalization_tf` 参数（默认 `false`，
       `get_parameter_or` 读取，未声明时不报错）：启用后每帧优先查
       `map -> <scan frame_id>` TF（Odin1 重定位成功后发布），查不到则回退到
       现有 `LocalizationStage::process`（GICP scan-to-map），核心配准逻辑
       （`localization.cpp` / `config.hpp`）未改动
-- [x] 新增 `ros_ws/src/radar_lidar/config/odin_relocalization.yaml`：
-      `odin.yaml` 的副本 + `use_odin_relocalization_tf: true`
+- [x] 重定位模式改为由 bringup launch 覆盖 `use_odin_relocalization_tf: true`，
+      不再维护 `odin_relocalization.yaml` 参数副本
 - [x] 新增 Odin 驱动 profile：`odin_driver_slam.yaml`（`custom_map_mode=1`，
       赛前离线走图）、`odin_driver_relocalization.yaml`（`custom_map_mode=2`
       + `sendodom`/`send_odom_baselink_tf` 开）
