@@ -8,7 +8,7 @@
 
 #include "radar_lidar/types.hpp"
 
-namespace radar::offline {
+namespace radar::lidar::offline {
 
 struct BgrColor {
     std::uint8_t b;
@@ -55,7 +55,7 @@ inline auto make_colored_cloud(const pcl::PointCloud<pcl::PointXYZ>& input, BgrC
     return output;
 }
 
-inline auto make_colored_cloud(const radar::types::PointCloud& input, BgrColor color)
+inline auto make_colored_cloud(const radar::lidar::types::PointCloud& input, BgrColor color)
     -> pcl::PointCloud<pcl::PointXYZRGB> {
     pcl::PointCloud<pcl::PointXYZRGB> output;
     output.reserve(input.size());
@@ -71,7 +71,7 @@ inline auto make_colored_cloud(const radar::types::PointCloud& input, BgrColor c
 }
 
 inline auto make_overlay_cloud(const pcl::PointCloud<pcl::PointXYZ>& map_cloud,
-    const radar::types::PointCloud& aligned_scan, BgrColor map_color, BgrColor scan_color)
+    const radar::lidar::types::PointCloud& aligned_scan, BgrColor map_color, BgrColor scan_color)
     -> pcl::PointCloud<pcl::PointXYZRGB> {
     auto output = make_colored_cloud(map_cloud, map_color);
     output.reserve(output.size() + aligned_scan.size());
@@ -86,4 +86,4 @@ inline auto make_overlay_cloud(const pcl::PointCloud<pcl::PointXYZ>& map_cloud,
     return output;
 }
 
-} // namespace radar::offline
+} // namespace radar::lidar::offline

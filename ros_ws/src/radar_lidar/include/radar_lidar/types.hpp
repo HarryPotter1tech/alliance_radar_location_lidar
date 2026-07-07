@@ -6,7 +6,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-namespace radar::types {
+namespace radar::lidar::types {
 
 using Point      = Eigen::Vector3d;
 using PointCloud = std::vector<Point>;
@@ -25,4 +25,4 @@ struct PoseEstimate {
     bool converged                         = false;
 };
 
-} // namespace radar::types
+} // namespace radar::lidar::types

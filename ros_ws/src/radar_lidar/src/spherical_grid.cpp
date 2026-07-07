@@ -9,7 +9,7 @@ static auto pack_key(int azimuth_idx, int elevation_idx) -> std::uint64_t {
         | static_cast<std::uint32_t>(elevation_idx);
 }
 
-namespace radar {
+namespace radar::lidar {
 
 void SphericalGrid::add(const types::PointCloud& points) {
     if (grid_map_.empty()) {
@@ -42,4 +42,4 @@ auto SphericalGrid::extract() -> types::PointCloud {
     return result;
 }
 
-} // namespace radar
+} // namespace radar::lidar

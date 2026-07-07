@@ -8,7 +8,7 @@
 
 #include <thread>
 
-namespace radar {
+namespace radar::lidar {
 
 auto MapData::load(const std::string& pcd_path, double voxel_leaf_size)
     -> std::expected<std::shared_ptr<MapData>, std::string> {
@@ -57,4 +57,4 @@ auto MapData::load(const std::string& pcd_path, double voxel_leaf_size)
     return data;
 }
 
-} // namespace radar
+} // namespace radar::lidar

@@ -2,7 +2,7 @@
 
 #include <ranges>
 
-namespace radar {
+namespace radar::lidar {
 
 void FrameAccumulator::push(types::PointCloud points) {
     frames_.push_back(std::move(points));
@@ -15,4 +15,4 @@ auto FrameAccumulator::all_points() const -> types::PointCloud {
     return frames_ | std::views::join | std::ranges::to<types::PointCloud>();
 }
 
-} // namespace radar
+} // namespace radar::lidar

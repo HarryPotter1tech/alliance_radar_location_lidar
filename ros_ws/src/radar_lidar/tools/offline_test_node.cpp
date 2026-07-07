@@ -58,7 +58,7 @@ auto is_better_score(const RegistrationScore& a, const RegistrationScore& b) -> 
 }
 
 auto score_alignment(const pcl::KdTreeFLANN<pcl::PointXYZ>& map_tree,
-    const radar::types::PointCloud& source, const Eigen::Isometry3d& T, double inlier_threshold)
+    const radar::lidar::types::PointCloud& source, const Eigen::Isometry3d& T, double inlier_threshold)
     -> RegistrationScore {
     const double th2 = inlier_threshold * inlier_threshold;
     std::vector<int> idx(1);
@@ -178,7 +178,7 @@ private:
             pcl::io::savePCDFileBinary(map_path, *raw);
             std::println("[offline] Map rotated Y-up→Z-up (deprecated), saved to {}", map_path);
         }
-        auto map_result = radar::MapData::load(map_path, voxel_leaf);
+        auto map_result = radar::lidar::MapData::load(map_path, voxel_leaf);
         if (!map_result) {
             std::println(stderr, "ERROR: Map load failed: {}", map_result.error());
             rclcpp::shutdown();
@@ -186,8 +186,8 @@ private:
         }
         map_ = *map_result;
         std::println("[offline] Map: {} points", map_->size());
-        const auto colored_map =
-            radar::offline::make_colored_cloud(map_->pcl_cloud(), radar::offline::kMapColorBgr);
+        const auto colored_map = radar::lidar::offline::make_colored_cloud(
+            map_->pcl_cloud(), radar::lidar::offline::kMapColorBgr);
         pub_map_->publish(to_rosmsg(colored_map, output_frame_));
 
         auto scan_pcl = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
@@ -206,15 +206,15 @@ private:
                 downsampled->size(), scan_voxel);
             scan_pcl = downsampled;
         }
-        auto frame = radar::geom::filter_valid_points(*scan_pcl);
+        auto frame = radar::lidar::geom::filter_valid_points(*scan_pcl);
         std::println("[offline] Scan: {} valid points", frame.points.size());
         if (frame.points.size() < 100) {
             std::println(stderr, "ERROR: Too few points");
             rclcpp::shutdown();
             return;
         }
-        const auto colored_raw =
-            radar::offline::make_colored_cloud(frame.points, radar::offline::kRawScanColorBgr);
+        const auto colored_raw = radar::lidar::offline::make_colored_cloud(
+            frame.points, radar::lidar::offline::kRawScanColorBgr);
         pub_raw_->publish(to_rosmsg(colored_raw, scan_frame_));
 
         // 先读初始位姿——后续 ROI 扇形和 GICP 都依赖它
@@ -246,7 +246,7 @@ private:
             const double tan2_half = std::tan(half_fov) * std::tan(half_fov);
             const double min_r2    = roi_min_range * roi_min_range;
             const double max_r2    = roi_max_range * roi_max_range;
-            auto clipped           = radar::types::PointCloud();
+            auto clipped           = radar::lidar::types::PointCloud();
             clipped.reserve(frame.points.size());
             for (const auto& p : frame.points) {
                 if (p.z() < roi_z_min || p.z() > roi_z_max) continue;
@@ -269,13 +269,13 @@ private:
                 rclcpp::shutdown();
                 return;
             }
-            const auto colored_roi =
-                radar::offline::make_colored_cloud(clipped, radar::offline::kRoiColorBgr);
+            const auto colored_roi = radar::lidar::offline::make_colored_cloud(
+                clipped, radar::lidar::offline::kRoiColorBgr);
             pub_roi_->publish(to_rosmsg(colored_roi, scan_frame_));
             frame.points = std::move(clipped);
         }
 
-        radar::config::LocalizationConfig cfg;
+        radar::lidar::config::LocalizationConfig cfg;
         cfg.voxel_leaf_size = voxel_leaf;
         get_parameter("max_corr_distance", cfg.max_corr_distance);
         get_parameter("max_iterations", cfg.max_iterations);
@@ -307,7 +307,7 @@ private:
         double base_pitch = deg_to_rad(init_pitch_deg);
         if (use_look_at) {
             const auto [yaw, pitch] =
-                radar::geom::look_at_yaw_pitch(eye, { look_at_x, look_at_y, look_at_z });
+                radar::lidar::geom::look_at_yaw_pitch(eye, { look_at_x, look_at_y, look_at_z });
             base_yaw   = yaw;
             base_pitch = pitch;
         }
@@ -345,8 +345,8 @@ private:
         std::vector<Candidate> candidates;
         candidates.reserve(yaw_offsets.size());
         for (const double yaw_off : yaw_offsets) {
-            auto init_pose = radar::geom::pose_from_yaw_pitch(eye, base_yaw + yaw_off, base_pitch);
-            auto coarse_stage = radar::LocalizationStage(map_, coarse_cfg);
+            auto init_pose = radar::lidar::geom::pose_from_yaw_pitch(eye, base_yaw + yaw_off, base_pitch);
+            auto coarse_stage = radar::lidar::LocalizationStage(map_, coarse_cfg);
             coarse_stage.set_initial_pose(init_pose);
             auto coarse_result             = coarse_stage.process(frame);
             const Eigen::Isometry3d cand_T = coarse_result ? coarse_result->t_map_lidar : init_pose;
@@ -368,7 +368,7 @@ private:
         fine_cfg.max_corr_distance = 3.0;
         fine_cfg.roi.use_roi       = false;
         get_parameter("fine_max_corr", fine_cfg.max_corr_distance);
-        auto fine_stage = radar::LocalizationStage(map_, fine_cfg);
+        auto fine_stage = radar::lidar::LocalizationStage(map_, fine_cfg);
         fine_stage.set_initial_pose(best->t_map_lidar);
         auto fine_result = fine_stage.process(frame);
 
@@ -399,16 +399,17 @@ private:
         // T_target_source maps scan → map; 把 scan 变换到地图系, 使 topic 名字
         // (scan_aligned) 与内容语义一致, 且和地图共处同一 frame (output_frame_)。
         auto scan_in_map = frame.points
-            | std::views::filter([](const auto& pt) { return radar::offline::is_valid_xyz(pt); })
+            | std::views::filter([](const auto& pt) { return radar::lidar::offline::is_valid_xyz(pt); })
             | std::views::transform([&t_map_lidar](const auto& pt) { return t_map_lidar * pt; })
-            | std::ranges::to<radar::types::PointCloud>();
-        const auto colored_aligned =
-            radar::offline::make_colored_cloud(scan_in_map, radar::offline::kAlignedScanColorBgr);
+            | std::ranges::to<radar::lidar::types::PointCloud>();
+        const auto colored_aligned = radar::lidar::offline::make_colored_cloud(
+            scan_in_map, radar::lidar::offline::kAlignedScanColorBgr);
         pub_aligned_->publish(to_rosmsg(colored_aligned, output_frame_));
 
         // Overlay: 地图 (固定, 青色) + scan 对齐结果 (绿色), 都在地图系
-        const auto colored_overlay = radar::offline::make_overlay_cloud(map_->pcl_cloud(),
-            scan_in_map, radar::offline::kMapColorBgr, radar::offline::kAlignedScanColorBgr);
+        const auto colored_overlay = radar::lidar::offline::make_overlay_cloud(map_->pcl_cloud(),
+            scan_in_map, radar::lidar::offline::kMapColorBgr,
+            radar::lidar::offline::kAlignedScanColorBgr);
         pub_overlay_->publish(to_rosmsg(colored_overlay, output_frame_));
 
         const auto trans = t_map_lidar.translation();
@@ -450,8 +451,8 @@ private:
         std::println("[offline] All topics published. Spinning.");
     }
 
-    std::shared_ptr<const radar::MapData> map_;
-    radar::LocalizationStage localization_;
+    std::shared_ptr<const radar::lidar::MapData> map_;
+    radar::lidar::LocalizationStage localization_;
     std::string output_frame_ { "map" };
     std::string scan_frame_ { "scan" };
 

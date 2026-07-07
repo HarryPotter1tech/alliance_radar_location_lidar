@@ -160,7 +160,7 @@ auto parse_args(int argc, char** argv) -> std::expected<Args, std::string> {
     return args;
 }
 
-auto write_pose_json(const std::string& path, const radar::types::PoseEstimate& pose)
+auto write_pose_json(const std::string& path, const radar::lidar::types::PoseEstimate& pose)
     -> std::expected<void, std::string> {
     const auto& t_map_lidar = pose.t_map_lidar;
     const auto trans        = t_map_lidar.translation();
@@ -200,7 +200,7 @@ auto write_pose_json(const std::string& path, const radar::types::PoseEstimate& 
 }
 
 auto build_merged_pcd(const pcl::PointCloud<pcl::PointXYZ>& map_cloud,
-    const radar::types::PointCloud& scan, const Eigen::Isometry3d& T)
+    const radar::lidar::types::PointCloud& scan, const Eigen::Isometry3d& T)
     -> pcl::PointCloud<pcl::PointXYZI>::Ptr {
     auto merged = pcl::make_shared<pcl::PointCloud<pcl::PointXYZI>>();
     merged->reserve(map_cloud.size() + scan.size());
@@ -228,7 +228,7 @@ int main(int argc, char** argv) {
     const auto& args = *args_result;
 
     std::println("[registration_tool] Loading map: {}", args.map_path);
-    auto map_result = radar::MapData::load(args.map_path, args.voxel_leaf);
+    auto map_result = radar::lidar::MapData::load(args.map_path, args.voxel_leaf);
     if (!map_result) {
         std::println(stderr, "[registration_tool] ERROR: {}", map_result.error());
         return 1;
@@ -254,7 +254,7 @@ int main(int argc, char** argv) {
         scan_pcl = downsampled;
     }
 
-    auto frame = radar::geom::filter_valid_points(*scan_pcl);
+    auto frame = radar::lidar::geom::filter_valid_points(*scan_pcl);
     std::println("[registration_tool] Scan loaded: {} valid points", frame.points.size());
     if (frame.points.size() < 100) {
         std::println(
@@ -262,19 +262,19 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    radar::config::LocalizationConfig cfg;
+    radar::lidar::config::LocalizationConfig cfg;
     cfg.voxel_leaf_size   = args.voxel_leaf;
     cfg.max_corr_distance = args.max_corr;
     cfg.max_iterations    = args.max_iter;
     cfg.num_threads       = args.num_threads;
     cfg.verbose           = args.verbose;
 
-    auto localization = radar::LocalizationStage(map, cfg);
+    auto localization = radar::lidar::LocalizationStage(map, cfg);
 
     if (args.init_x != 0.0 || args.init_y != 0.0 || args.init_z != 0.0
         || args.init_yaw_deg != 0.0) {
         const auto init_pose =
-            radar::geom::pose_from_yaw_pitch(Eigen::Vector3d(args.init_x, args.init_y, args.init_z),
+            radar::lidar::geom::pose_from_yaw_pitch(Eigen::Vector3d(args.init_x, args.init_y, args.init_z),
                 deg_to_rad(args.init_yaw_deg), 0.0);
         localization.set_initial_pose(init_pose);
         std::println("[registration_tool] Initial pose: x={} y={} z={} yaw={}deg", args.init_x,

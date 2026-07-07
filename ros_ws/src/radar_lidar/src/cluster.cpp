@@ -8,7 +8,7 @@
 
 #include <limits>
 
-namespace radar {
+namespace radar::lidar {
 
 ClusterStage::ClusterStage(ClusterConfig cfg)
     : cfg_(std::move(cfg)) { }
@@ -84,4 +84,4 @@ auto ClusterStage::process(const types::PointCloud& dynamic_points)
     return results;
 }
 
-} // namespace radar
+} // namespace radar::lidar

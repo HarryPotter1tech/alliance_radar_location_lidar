@@ -8,7 +8,7 @@
 
 #include "radar_lidar/types.hpp"
 
-namespace radar {
+namespace radar::lidar {
 
 struct ClusterConfig {
     double cluster_tolerance = 0.25;
@@ -39,4 +39,4 @@ private:
     ClusterConfig cfg_;
 };
 
-} // namespace radar
+} // namespace radar::lidar

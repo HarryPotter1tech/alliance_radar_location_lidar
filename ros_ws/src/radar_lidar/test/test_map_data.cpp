@@ -36,32 +36,32 @@ protected:
 } // namespace
 
 TEST_F(MapDataTest, LoadValidPCD) {
-    auto result = radar::MapData::load(test_pcd_, 0.1);
+    auto result = radar::lidar::MapData::load(test_pcd_, 0.1);
     ASSERT_TRUE(result.has_value()) << result.error();
     auto map = *result;
     EXPECT_GT(map->size(), 0u);
 }
 
 TEST_F(MapDataTest, LoadNonexistentPCD) {
-    auto result = radar::MapData::load("/tmp/nonexistent_map.pcd", 0.1);
+    auto result = radar::lidar::MapData::load("/tmp/nonexistent_map.pcd", 0.1);
     EXPECT_FALSE(result.has_value());
     EXPECT_NE(result.error().find("Failed to load"), std::string::npos);
 }
 
 TEST_F(MapDataTest, VoxelDownsampling) {
-    auto result = radar::MapData::load(test_pcd_, 0.1);
+    auto result = radar::lidar::MapData::load(test_pcd_, 0.1);
     ASSERT_TRUE(result.has_value());
     auto map = *result;
     EXPECT_GT(map->size(), 0u);
 
-    auto result2 = radar::MapData::load(test_pcd_, 0.5);
+    auto result2 = radar::lidar::MapData::load(test_pcd_, 0.5);
     ASSERT_TRUE(result2.has_value());
     auto map2 = *result2;
     EXPECT_LT(map2->size(), map->size());
 }
 
 TEST_F(MapDataTest, KdTreeAccessible) {
-    auto result = radar::MapData::load(test_pcd_, 0.1);
+    auto result = radar::lidar::MapData::load(test_pcd_, 0.1);
     ASSERT_TRUE(result.has_value());
     auto map = *result;
 

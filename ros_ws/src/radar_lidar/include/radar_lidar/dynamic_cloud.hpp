@@ -13,7 +13,7 @@
 #include "radar_lidar/config.hpp"
 #include "radar_lidar/types.hpp"
 
-namespace radar {
+namespace radar::lidar {
 
 struct DynamicCloudConfig {
     double distance_threshold = 0.1;
@@ -62,4 +62,4 @@ private:
     std::vector<std::vector<float>> thread_dist_sq_;
 };
 
-} // namespace radar
+} // namespace radar::lidar

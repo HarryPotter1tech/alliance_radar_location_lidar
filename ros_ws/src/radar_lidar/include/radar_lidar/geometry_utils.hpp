@@ -10,7 +10,7 @@
 #include "radar_lidar/config.hpp"
 #include "radar_lidar/types.hpp"
 
-namespace radar::geom {
+namespace radar::lidar::geom {
 
 /// @brief 判断点是否在 AABB 范围内
 [[nodiscard]] inline auto in_roi_aabb(const Eigen::Vector3d& p, const config::RoiBounds& roi)
@@ -63,4 +63,4 @@ namespace radar::geom {
     return { .points = std::move(points) };
 }
 
-} // namespace radar::geom
+} // namespace radar::lidar::geom

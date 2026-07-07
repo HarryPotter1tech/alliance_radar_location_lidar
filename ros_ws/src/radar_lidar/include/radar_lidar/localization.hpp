@@ -11,7 +11,7 @@
 #include "radar_lidar/spherical_grid.hpp"
 #include "radar_lidar/types.hpp"
 
-namespace radar {
+namespace radar::lidar {
 
 class MapData;
 
@@ -53,4 +53,4 @@ private:
     bool locked_ = false;
 };
 
-} // namespace radar
+} // namespace radar::lidar
