@@ -34,7 +34,10 @@
       作为主流程
 - [x] `radar_bringup` launch 中加入 static tf 发布器（已落 `static_tf.launch.py` + `extrinsics.yaml`）
 - [x] `LidarPipeline` 增加 dynamic tf broadcaster（当前阶段 authority，当前发布 `map -> radar_base`）
-- [ ] `FusionNode` 从 pose relay 演进为真正多源 pose fusion 后，接管 dynamic tf
+- [ ] `FusionNode` 从 pose relay 演进为真正多源 pose fusion 后，满足以下门槛再接管 dynamic tf：
+      1) 至少接入两类观测源；2) `/localization/pose` 不再是 LiDAR passthrough；
+      3) 具备稳定性判断（covariance / converged / source-health）；
+      4) 切换后 `radar_lidar` 停止发布系统最终 dynamic tf
 - [x] 明确 `/fusion/tracks`（radar-only）与 `/fusion/fused_tracks`（final fused）双轨迹契约，并补充 dynamic tf authority handoff 条件
 
 ## Odin1 内置重定位集成（2026-07-05 完成）

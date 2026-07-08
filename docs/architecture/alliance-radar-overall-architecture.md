@@ -228,7 +228,7 @@ TF 输出规范（当前建议）：
 | 对象 | 固定/动态 | 存放位置 | 产生者 | 消费者 | 说明 |
 |---|---|---|---|---|---|
 | 相机标定前粗略初始位姿 | 固定（标定输入） | `radar_calibration/config/initial_guess.yaml` | 人工估算 / 测量 | `radar_calibration` | 只用于帮助离线标定收敛，不直接给主进程使用 |
-| 相机正式外参 | 固定（运行时事实源） | `radar_camera/config/extrinsic.yaml` | `radar_calibration` 导出 | `radar_camera`、`radar_bringup`（launch 引用） | 推荐统一保存为 camera-lidar 固定机械外参；launch 只引用，不复制配置 |
+| 相机正式外参 | 固定（运行时事实源） | `radar_bringup/config/common/extrinsics.yaml`（当前 static tf 发布源） / `radar_camera/config/extrinsic.yaml`（未来相机节点输入） | `radar_calibration` 导出后同步到 bringup/static tf 配置 | `radar_camera`、`radar_bringup` | 当前 launch 直接读取 bringup 的 static tf 配置；未来若相机节点单独消费外参，应保持两者来源一致 |
 | LiDAR / Odin 启动先验 | 固定（启动参数） | `radar_bringup/config/lidar/*.yaml` | 部署配置 / 红蓝方场次参数 | `radar_lidar` / `odin_ros_driver` | 启动时的位姿猜测，不是固定外参 |
 | LiDAR 离线配准调试参数 | 固定（工具配置） | `radar_lidar/config/offline_registration.yaml` | 工具调试参数 | `offline_test_node` 等离线工具 | 只供离线验证 / 调试使用 |
 | LiDAR 对地图的最终位姿 (`t_map_lidar`) | 动态（运行时结果） | 不落 YAML；经 topic / dynamic tf 发布 | `radar_lidar`（当前）/ `radar_fusion`（最终） | Foxglove、`radar_fusion`、`radar_bridge` 等 | 若使用 GICP 或 Odin1 重定位，则它属于运行时定位结果，不是 calibration 风格外参文件 |
@@ -237,9 +237,10 @@ TF 输出规范（当前建议）：
 - **相机标定前粗略初始位姿**：放在 `radar_calibration/config/initial_guess.yaml`。
   这是离线标定流程的输入，只用于帮助 `direct_visual_lidar_calibration` 收敛，
   不直接给主进程运行时使用。
-- **相机正式外参**：`radar_calibration` 的输出文件应落在
-  `radar_camera/config/extrinsic.yaml`（系统运行时唯一相机外参事实源）。
-  `radar_bringup` 在 launch 中只引用它，不复制一份到自身配置目录。
+- **相机正式外参**：当前 `radar_bringup` 的 static tf 直接读取
+  `radar_bringup/config/common/extrinsics.yaml`。若 `radar_calibration` 导出
+  `radar_camera/config/extrinsic.yaml` 作为视觉节点输入，则应同步生成或转换到 bringup 的
+  static tf 配置，避免两份外参漂移。
 - **LiDAR / Odin 启动先验**：放在 `radar_bringup/config/lidar/*.yaml`。
   例如 Odin 内置重定位使用 `custom_init_pos`；未来若自研 GICP 主链路也需要启动
   先验，同样归入 bringup 的运行时 YAML。它们的语义都是“启动时的位姿猜测”，
