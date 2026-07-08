@@ -273,9 +273,9 @@ int main(int argc, char** argv) {
 
     if (args.init_x != 0.0 || args.init_y != 0.0 || args.init_z != 0.0
         || args.init_yaw_deg != 0.0) {
-        const auto init_pose =
-            radar::lidar::geom::pose_from_yaw_pitch(Eigen::Vector3d(args.init_x, args.init_y, args.init_z),
-                deg_to_rad(args.init_yaw_deg), 0.0);
+        const auto init_pose = radar::lidar::geom::pose_from_yaw_pitch(
+            Eigen::Vector3d(args.init_x, args.init_y, args.init_z), deg_to_rad(args.init_yaw_deg),
+            0.0);
         localization.set_initial_pose(init_pose);
         std::println("[registration_tool] Initial pose: x={} y={} z={} yaw={}deg", args.init_x,
             args.init_y, args.init_z, args.init_yaw_deg);

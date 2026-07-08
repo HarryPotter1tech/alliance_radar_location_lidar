@@ -228,7 +228,7 @@ void LidarPipeline::publish_dynamic_tf(const types::PoseEstimate& pose, types::T
     transform_msg.header.frame_id = output_frame_;
     transform_msg.child_frame_id  = "radar_base";
 
-    const auto& transform = pose.t_map_lidar;
+    const auto& transform                 = pose.t_map_lidar;
     transform_msg.transform.translation.x = transform.translation().x();
     transform_msg.transform.translation.y = transform.translation().y();
     transform_msg.transform.translation.z = transform.translation().z();

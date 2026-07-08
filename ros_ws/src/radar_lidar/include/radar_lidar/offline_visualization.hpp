@@ -41,8 +41,8 @@ inline auto make_colored_point(float x, float y, float z, BgrColor color) -> pcl
     return point;
 }
 
-[[nodiscard]] inline auto make_colored_cloud(const pcl::PointCloud<pcl::PointXYZ>& input, BgrColor color)
-    -> pcl::PointCloud<pcl::PointXYZRGB> {
+[[nodiscard]] inline auto make_colored_cloud(const pcl::PointCloud<pcl::PointXYZ>& input,
+    BgrColor color) -> pcl::PointCloud<pcl::PointXYZRGB> {
     pcl::PointCloud<pcl::PointXYZRGB> output;
     output.reserve(input.size());
     for (const auto& pt : input.points) {
@@ -55,8 +55,8 @@ inline auto make_colored_point(float x, float y, float z, BgrColor color) -> pcl
     return output;
 }
 
-[[nodiscard]] inline auto make_colored_cloud(const radar::lidar::types::PointCloud& input, BgrColor color)
-    -> pcl::PointCloud<pcl::PointXYZRGB> {
+[[nodiscard]] inline auto make_colored_cloud(const radar::lidar::types::PointCloud& input,
+    BgrColor color) -> pcl::PointCloud<pcl::PointXYZRGB> {
     pcl::PointCloud<pcl::PointXYZRGB> output;
     output.reserve(input.size());
     for (const auto& pt : input) {

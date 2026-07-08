@@ -58,8 +58,8 @@ auto is_better_score(const RegistrationScore& a, const RegistrationScore& b) -> 
 }
 
 auto score_alignment(const pcl::KdTreeFLANN<pcl::PointXYZ>& map_tree,
-    const radar::lidar::types::PointCloud& source, const Eigen::Isometry3d& T, double inlier_threshold)
-    -> RegistrationScore {
+    const radar::lidar::types::PointCloud& source, const Eigen::Isometry3d& T,
+    double inlier_threshold) -> RegistrationScore {
     const double th2 = inlier_threshold * inlier_threshold;
     std::vector<int> idx(1);
     std::vector<float> sq_dist(1);
@@ -345,7 +345,8 @@ private:
         std::vector<Candidate> candidates;
         candidates.reserve(yaw_offsets.size());
         for (const double yaw_off : yaw_offsets) {
-            auto init_pose = radar::lidar::geom::pose_from_yaw_pitch(eye, base_yaw + yaw_off, base_pitch);
+            auto init_pose =
+                radar::lidar::geom::pose_from_yaw_pitch(eye, base_yaw + yaw_off, base_pitch);
             auto coarse_stage = radar::lidar::LocalizationStage(map_, coarse_cfg);
             coarse_stage.set_initial_pose(init_pose);
             auto coarse_result             = coarse_stage.process(frame);
@@ -398,18 +399,18 @@ private:
 
         // T_target_source maps scan → map; 把 scan 变换到地图系, 使 topic 名字
         // (scan_aligned) 与内容语义一致, 且和地图共处同一 frame (output_frame_)。
-        auto scan_in_map = frame.points
-            | std::views::filter([](const auto& pt) { return radar::lidar::offline::is_valid_xyz(pt); })
-            | std::views::transform([&t_map_lidar](const auto& pt) { return t_map_lidar * pt; })
+        auto scan_in_map = frame.points | std::views::filter([](const auto& pt) {
+            return radar::lidar::offline::is_valid_xyz(pt);
+        }) | std::views::transform([&t_map_lidar](const auto& pt) { return t_map_lidar * pt; })
             | std::ranges::to<radar::lidar::types::PointCloud>();
         const auto colored_aligned = radar::lidar::offline::make_colored_cloud(
             scan_in_map, radar::lidar::offline::kAlignedScanColorBgr);
         pub_aligned_->publish(to_rosmsg(colored_aligned, output_frame_));
 
         // Overlay: 地图 (固定, 青色) + scan 对齐结果 (绿色), 都在地图系
-        const auto colored_overlay = radar::lidar::offline::make_overlay_cloud(map_->pcl_cloud(),
-            scan_in_map, radar::lidar::offline::kMapColorBgr,
-            radar::lidar::offline::kAlignedScanColorBgr);
+        const auto colored_overlay =
+            radar::lidar::offline::make_overlay_cloud(map_->pcl_cloud(), scan_in_map,
+                radar::lidar::offline::kMapColorBgr, radar::lidar::offline::kAlignedScanColorBgr);
         pub_overlay_->publish(to_rosmsg(colored_overlay, output_frame_));
 
         const auto trans = t_map_lidar.translation();

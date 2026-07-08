@@ -20,8 +20,7 @@ namespace {
     [[nodiscard]] auto filter_tdt_localization_roi(const types::PointCloud& points)
         -> types::PointCloud {
         return points
-            | std::views::filter(
-                [](const auto& point) { return in_tdt_localization_roi(point); })
+            | std::views::filter([](const auto& point) { return in_tdt_localization_roi(point); })
             | std::ranges::to<types::PointCloud>();
     }
 

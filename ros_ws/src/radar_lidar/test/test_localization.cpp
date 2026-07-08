@@ -17,8 +17,8 @@ namespace {
 constexpr auto deg_to_rad(double deg) -> double { return deg * std::numbers::pi / 180.0; }
 
 auto make_cube_surface(double size, double step) -> pcl::PointCloud<pcl::PointXYZ>::Ptr {
-    auto cloud        = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-    const double half = size / 2.0;
+    auto cloud            = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+    const double half     = size / 2.0;
     const double offset_x = 15.0;
     const double offset_y = 0.0;
     const double offset_z = 1.0;
@@ -38,7 +38,8 @@ auto make_cube_surface(double size, double step) -> pcl::PointCloud<pcl::PointXY
     return cloud;
 }
 
-auto make_frame_from_cloud(const pcl::PointCloud<pcl::PointXYZ>& cloud) -> radar::lidar::types::Frame {
+auto make_frame_from_cloud(const pcl::PointCloud<pcl::PointXYZ>& cloud)
+    -> radar::lidar::types::Frame {
     auto points = cloud.points
         | std::views::transform([](const auto& pt) { return Eigen::Vector3d(pt.x, pt.y, pt.z); })
         | std::ranges::to<std::vector<Eigen::Vector3d>>();
@@ -71,7 +72,7 @@ TEST_F(LocalizationTest, IdentityTransform) {
     cfg.accumulate_frames  = 0;
 
     auto localization = radar::lidar::LocalizationStage(map, cfg);
-    auto frame = make_frame_from_cloud(map->pcl_cloud());
+    auto frame        = make_frame_from_cloud(map->pcl_cloud());
 
     auto result = localization.process(frame);
     ASSERT_TRUE(result.has_value()) << result.error();
@@ -141,8 +142,9 @@ TEST_F(LocalizationTest, KnownRotation) {
     ASSERT_TRUE(result.has_value()) << result.error();
 
     const auto& R_result = result->t_map_lidar.rotation();
-    EXPECT_TRUE(R_result.isApprox(Eigen::Matrix3d::Identity(), 1e-1))
-        << "Expected localization to recover identity rotation";
+    EXPECT_TRUE(R_result.isApprox(Eigen::Matrix3d::Identity(), 1e-1)) << "Expected localization to "
+                                                                         "recover identity "
+                                                                         "rotation";
 }
 
 TEST_F(LocalizationTest, EmptyScanReturnsError) {

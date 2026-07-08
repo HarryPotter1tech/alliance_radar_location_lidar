@@ -26,12 +26,12 @@ namespace {
     }
 
     [[nodiscard]] auto in_tdt_dynamic_slope_exclusion(const Eigen::Vector3d& point) -> bool {
-        constexpr double x_plus_y_center           = 21.5;
-        constexpr double x_plus_y_half_width       = exclusion_zone_half_width(2.9);
-        constexpr double y_minus_x_center          = -6.5;
-        constexpr double y_minus_x_half_width      = exclusion_zone_half_width(0.9);
-        const double point_x_plus_y                = point.x() + point.y();
-        const double point_y_minus_x               = point.y() - point.x();
+        constexpr double x_plus_y_center      = 21.5;
+        constexpr double x_plus_y_half_width  = exclusion_zone_half_width(2.9);
+        constexpr double y_minus_x_center     = -6.5;
+        constexpr double y_minus_x_half_width = exclusion_zone_half_width(0.9);
+        const double point_x_plus_y           = point.x() + point.y();
+        const double point_y_minus_x          = point.y() - point.x();
         return (x_plus_y_center - x_plus_y_half_width) < point_x_plus_y
             && point_x_plus_y < (x_plus_y_center + x_plus_y_half_width)
             && (y_minus_x_center - y_minus_x_half_width) < point_y_minus_x
@@ -43,7 +43,8 @@ namespace {
             && !in_tdt_dynamic_slope_exclusion(point);
     }
 
-    [[nodiscard]] auto filter_tdt_dynamic_roi(const types::PointCloud& points) -> types::PointCloud {
+    [[nodiscard]] auto filter_tdt_dynamic_roi(const types::PointCloud& points)
+        -> types::PointCloud {
         return points
             | std::views::filter([](const auto& point) { return keep_tdt_dynamic_point(point); })
             | std::ranges::to<types::PointCloud>();

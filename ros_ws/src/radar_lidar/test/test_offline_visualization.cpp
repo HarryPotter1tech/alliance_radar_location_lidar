@@ -26,8 +26,8 @@ auto make_aligned_scan() -> radar::lidar::types::PointCloud {
 } // namespace
 
 TEST(OfflineVisualizationTest, ColoredCloudUsesRequestedBgrColor) {
-    const auto cloud =
-        radar::lidar::offline::make_colored_cloud(make_map_cloud(), radar::lidar::offline::kMapColorBgr);
+    const auto cloud = radar::lidar::offline::make_colored_cloud(
+        make_map_cloud(), radar::lidar::offline::kMapColorBgr);
 
     ASSERT_EQ(cloud.size(), 2u);
     EXPECT_EQ(cloud[0].b, radar::lidar::offline::kMapColorBgr.b);
@@ -36,8 +36,9 @@ TEST(OfflineVisualizationTest, ColoredCloudUsesRequestedBgrColor) {
 }
 
 TEST(OfflineVisualizationTest, OverlayCloudSeparatesMapAndScanColors) {
-    const auto overlay = radar::lidar::offline::make_overlay_cloud(make_map_cloud(), make_aligned_scan(),
-        radar::lidar::offline::kMapColorBgr, radar::lidar::offline::kAlignedScanColorBgr);
+    const auto overlay =
+        radar::lidar::offline::make_overlay_cloud(make_map_cloud(), make_aligned_scan(),
+            radar::lidar::offline::kMapColorBgr, radar::lidar::offline::kAlignedScanColorBgr);
 
     ASSERT_EQ(overlay.size(), 3u);
 
