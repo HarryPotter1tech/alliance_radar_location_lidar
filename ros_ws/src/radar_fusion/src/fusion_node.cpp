@@ -83,41 +83,35 @@ void FusionNode::on_lidar_pose(const geometry_msgs::msg::PoseWithCovarianceStamp
 }
 
 void FusionNode::on_camera_detection(const geometry_msgs::msg::PoseArray::SharedPtr msg) {
-    latest_camera_stamp_ns_ = rclcpp::Time(msg->header.stamp).nanoseconds();
+    auto stamp                  = rclcpp::Time(msg->header.stamp);
+    latest_camera_stamp_ns_     = stamp.nanoseconds();
     latest_camera_observations_.clear();
     latest_camera_observations_.reserve(msg->poses.size());
+
+    std::vector<Eigen::Vector2d> measurements;
+    measurements.reserve(msg->poses.size());
     for (const auto& detection_pose : msg->poses) {
         latest_camera_observations_.push_back(CameraObservation {
             .position   = detection_pose.position,
             .confidence = 1.0,
         });
+        measurements.emplace_back(detection_pose.position.x, detection_pose.position.y);
     }
+
     update_fusion_mode(latest_camera_stamp_ns_);
-    publish_status(rclcpp::Time(msg->header.stamp));
+    process_measurements(measurements, stamp.nanoseconds(), false);
+
+    publish_tracks(tracks_, stamp);
+    publish_fused_tracks(tracks_, stamp);
+    publish_status(stamp);
 }
 
-void FusionNode::on_cluster(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
-    auto stamp  = rclcpp::Time(msg->header.stamp);
-    auto now_ns = stamp.nanoseconds();
-    update_fusion_mode(now_ns);
-
-    std::vector<Eigen::Vector2d> measurements;
-    measurements.reserve(msg->width * msg->height);
-
-    sensor_msgs::PointCloud2ConstIterator<float> iter_x(*msg, "x");
-    sensor_msgs::PointCloud2ConstIterator<float> iter_y(*msg, "y");
-    for (; iter_x != iter_x.end(); ++iter_x, ++iter_y) {
-        if (std::isfinite(*iter_x) && std::isfinite(*iter_y)) {
-            measurements.emplace_back(*iter_x, *iter_y);
-        }
-    }
-
-    // 1. 预测所有现有轨迹
+void FusionNode::process_measurements(
+    const std::vector<Eigen::Vector2d>& measurements, int64_t now_ns, bool mark_unmatched_tracks) {
     for (auto& track : tracks_) {
         track.predict(now_ns);
     }
 
-    // 2. 数据关联（最近邻贪婪匹配）
     std::vector<bool> matched_tracks(tracks_.size(), false);
     std::vector<bool> matched_meas(measurements.size(), false);
     const double gate_distance_sq = cfg_.gate_distance * cfg_.gate_distance;
@@ -149,13 +143,14 @@ void FusionNode::on_cluster(const sensor_msgs::msg::PointCloud2::SharedPtr msg) 
         matched_meas[candidate.measurement_idx] = true;
     }
 
-    for (size_t i = 0; i < tracks_.size(); ++i) {
-        if (!matched_tracks[i]) {
-            tracks_[i].mark_missed(cfg_.max_misses_before_delete);
+    if (mark_unmatched_tracks) {
+        for (size_t i = 0; i < tracks_.size(); ++i) {
+            if (!matched_tracks[i]) {
+                tracks_[i].mark_missed(cfg_.max_misses_before_delete);
+            }
         }
     }
 
-    // 3. 未匹配的观测 → 新建轨迹
     for (size_t j = 0; j < measurements.size(); ++j) {
         if (matched_meas[j]) continue;
         if (tracks_.size() >= static_cast<size_t>(cfg_.max_tracks)) break;
@@ -165,15 +160,33 @@ void FusionNode::on_cluster(const sensor_msgs::msg::PointCloud2::SharedPtr msg) 
         tracks_.push_back(new_track);
     }
 
-    // 4. 删除超时轨迹
     tracks_.erase(std::remove_if(tracks_.begin(), tracks_.end(),
                       [&](const KalmanTracker& t) {
                           return t.state().is_deleted()
-                              || t.state().is_stale(now_ns, cfg_.track_timeout_sec);
+                              || (mark_unmatched_tracks
+                                  && t.state().is_stale(now_ns, cfg_.track_timeout_sec));
                       }),
         tracks_.end());
+}
 
-    // 5. 发布
+void FusionNode::on_cluster(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
+    auto stamp  = rclcpp::Time(msg->header.stamp);
+    auto now_ns = stamp.nanoseconds();
+    update_fusion_mode(now_ns);
+
+    std::vector<Eigen::Vector2d> measurements;
+    measurements.reserve(msg->width * msg->height);
+
+    sensor_msgs::PointCloud2ConstIterator<float> iter_x(*msg, "x");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_y(*msg, "y");
+    for (; iter_x != iter_x.end(); ++iter_x, ++iter_y) {
+        if (std::isfinite(*iter_x) && std::isfinite(*iter_y)) {
+            measurements.emplace_back(*iter_x, *iter_y);
+        }
+    }
+
+    process_measurements(measurements, now_ns, true);
+
     publish_tracks(tracks_, stamp);
     publish_fused_tracks(tracks_, stamp);
     publish_status(stamp);

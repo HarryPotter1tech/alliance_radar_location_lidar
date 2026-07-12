@@ -428,3 +428,118 @@ TEST_F(FusionNodeTest, CameraDetectionSwitchesFusionModeWhenEnabled) {
     std::lock_guard<std::mutex> lock(mutex_);
     EXPECT_EQ(last_status_.message, "RADAR_CAMERA");
 }
+
+TEST_F(FusionNodeTest, CameraDetectionsCreateConfirmedTracksWhenFusionEnabled) {
+    auto enabled_node = std::make_shared<radar::fusion::FusionNode>(
+        rclcpp::NodeOptions().append_parameter_override("enable_camera_fusion", true));
+    executor_.remove_node(fusion_node_);
+    fusion_node_.reset();
+    fusion_node_ = enabled_node;
+    executor_.add_node(fusion_node_);
+    ASSERT_TRUE(wait_for_discovery(true))
+        << "ROS entities failed to rediscover after enabling camera fusion";
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        fused_track_publish_count_     = 0;
+        last_fused_track_marker_count_ = 0;
+    }
+
+    auto publish_camera = [this](double x, double y, int32_t sec, uint32_t nsec) {
+        geometry_msgs::msg::PoseArray detections;
+        detections.header.frame_id  = "map";
+        detections.header.stamp.sec = sec;
+        detections.header.stamp.nanosec = nsec;
+        geometry_msgs::msg::Pose pose;
+        pose.position.x = x;
+        pose.position.y = y;
+        pose.position.z = 0.0;
+        detections.poses.push_back(pose);
+        camera_detection_pub_->publish(detections);
+    };
+
+    publish_camera(1.0, 2.0, 0, 0u);
+    std::this_thread::sleep_for(1000ms);
+    publish_camera(1.4, 2.0, 1, 0u);
+    std::this_thread::sleep_for(1000ms);
+    publish_camera(1.8, 2.0, 2, 0u);
+
+    ASSERT_TRUE(wait_for_fused_track_publish_count(3, 500ms));
+    std::lock_guard<std::mutex> lock(mutex_);
+    EXPECT_GT(last_fused_track_marker_count_, 0u);
+}
+
+TEST_F(FusionNodeTest, CameraDetectionNearLidarTrackKeepsFusedOutputActive) {
+    auto enabled_node = std::make_shared<radar::fusion::FusionNode>(
+        rclcpp::NodeOptions().append_parameter_override("enable_camera_fusion", true));
+    executor_.remove_node(fusion_node_);
+    fusion_node_.reset();
+    fusion_node_ = enabled_node;
+    executor_.add_node(fusion_node_);
+    ASSERT_TRUE(wait_for_discovery(true))
+        << "ROS entities failed to rediscover after enabling camera fusion";
+
+    cluster_pub_->publish(make_cluster_msg(0.0, 0.0, 0.0, 0, 0u));
+    std::this_thread::sleep_for(1000ms);
+    cluster_pub_->publish(make_cluster_msg(0.8, 0.0, 0.0, 1, 0u));
+    std::this_thread::sleep_for(1000ms);
+    cluster_pub_->publish(make_cluster_msg(1.6, 0.0, 0.0, 2, 0u));
+    ASSERT_TRUE(wait_for_track_marker_count(3, 500ms));
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        fused_track_publish_count_     = 0;
+        last_fused_track_marker_count_ = 0;
+    }
+
+    geometry_msgs::msg::PoseArray detections;
+    detections.header.frame_id  = "map";
+    detections.header.stamp.sec = 3;
+    detections.header.stamp.nanosec = 0u;
+    geometry_msgs::msg::Pose pose;
+    pose.position.x = 1.8;
+    pose.position.y = 0.0;
+    pose.position.z = 0.0;
+    detections.poses.push_back(pose);
+    camera_detection_pub_->publish(detections);
+
+    ASSERT_TRUE(wait_for_fused_track_publish_count(1, 500ms));
+    std::lock_guard<std::mutex> lock(mutex_);
+    EXPECT_GT(last_fused_track_marker_count_, 0u);
+}
+
+TEST_F(FusionNodeTest, EmptyCameraFramesDoNotDeleteLidarTrack) {
+    auto enabled_node = std::make_shared<radar::fusion::FusionNode>(
+        rclcpp::NodeOptions().append_parameter_override("enable_camera_fusion", true));
+    executor_.remove_node(fusion_node_);
+    fusion_node_.reset();
+    fusion_node_ = enabled_node;
+    executor_.add_node(fusion_node_);
+    ASSERT_TRUE(wait_for_discovery(true))
+        << "ROS entities failed to rediscover after enabling camera fusion";
+
+    cluster_pub_->publish(make_cluster_msg(0.0, 0.0, 0.0, 0, 0u));
+    std::this_thread::sleep_for(1000ms);
+    cluster_pub_->publish(make_cluster_msg(0.8, 0.0, 0.0, 1, 0u));
+    std::this_thread::sleep_for(1000ms);
+    cluster_pub_->publish(make_cluster_msg(1.6, 0.0, 0.0, 2, 0u));
+    ASSERT_TRUE(wait_for_track_marker_count(3, 500ms));
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        fused_track_publish_count_     = 0;
+        last_fused_track_marker_count_ = 0;
+    }
+
+    geometry_msgs::msg::PoseArray detections;
+    detections.header.frame_id  = "map";
+    detections.header.stamp.sec = 3;
+    camera_detection_pub_->publish(detections);
+    std::this_thread::sleep_for(100ms);
+    detections.header.stamp.sec = 4;
+    camera_detection_pub_->publish(detections);
+
+    ASSERT_TRUE(wait_for_fused_track_publish_count(2, 500ms));
+    std::lock_guard<std::mutex> lock(mutex_);
+    EXPECT_GT(last_fused_track_marker_count_, 0u);
+}
