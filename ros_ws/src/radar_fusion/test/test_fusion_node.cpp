@@ -533,10 +533,12 @@ TEST_F(FusionNodeTest, EmptyCameraFramesDoNotDeleteLidarTrack) {
 
     geometry_msgs::msg::PoseArray detections;
     detections.header.frame_id  = "map";
-    detections.header.stamp.sec = 3;
+    detections.header.stamp.sec = 2;
+    detections.header.stamp.nanosec = 100000000u;
     camera_detection_pub_->publish(detections);
     std::this_thread::sleep_for(100ms);
-    detections.header.stamp.sec = 4;
+    detections.header.stamp.sec = 2;
+    detections.header.stamp.nanosec = 200000000u;
     camera_detection_pub_->publish(detections);
 
     ASSERT_TRUE(wait_for_fused_track_publish_count(2, 500ms));

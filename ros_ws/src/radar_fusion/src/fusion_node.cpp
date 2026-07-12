@@ -95,7 +95,9 @@ void FusionNode::on_camera_detection(const geometry_msgs::msg::PoseArray::Shared
             .position   = detection_pose.position,
             .confidence = 1.0,
         });
-        measurements.emplace_back(detection_pose.position.x, detection_pose.position.y);
+        if (std::isfinite(detection_pose.position.x) && std::isfinite(detection_pose.position.y)) {
+            measurements.emplace_back(detection_pose.position.x, detection_pose.position.y);
+        }
     }
 
     update_fusion_mode(latest_camera_stamp_ns_);
@@ -163,8 +165,7 @@ void FusionNode::process_measurements(
     tracks_.erase(std::remove_if(tracks_.begin(), tracks_.end(),
                       [&](const KalmanTracker& t) {
                           return t.state().is_deleted()
-                              || (mark_unmatched_tracks
-                                  && t.state().is_stale(now_ns, cfg_.track_timeout_sec));
+                              || t.state().is_stale(now_ns, cfg_.track_timeout_sec);
                       }),
         tracks_.end());
 }
