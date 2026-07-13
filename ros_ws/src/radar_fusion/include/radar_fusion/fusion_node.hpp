@@ -55,8 +55,8 @@ private:
     void publish_status(const rclcpp::Time& stamp);
     void update_fusion_mode(int64_t reference_stamp_ns);
 
-    void process_measurements(
-        const std::vector<Eigen::Vector2d>& measurements, int64_t now_ns, bool mark_unmatched_tracks);
+    void process_measurements(const std::vector<Eigen::Vector2d>& measurements, int64_t now_ns,
+        bool mark_unmatched_tracks);
 
     FusionConfig cfg_;
     FusionMode fusion_mode_ = FusionMode::RADAR_ONLY;

@@ -83,8 +83,8 @@ void FusionNode::on_lidar_pose(const geometry_msgs::msg::PoseWithCovarianceStamp
 }
 
 void FusionNode::on_camera_detection(const geometry_msgs::msg::PoseArray::SharedPtr msg) {
-    auto stamp                  = rclcpp::Time(msg->header.stamp);
-    latest_camera_stamp_ns_     = stamp.nanoseconds();
+    auto stamp              = rclcpp::Time(msg->header.stamp);
+    latest_camera_stamp_ns_ = stamp.nanoseconds();
     latest_camera_observations_.clear();
     latest_camera_observations_.reserve(msg->poses.size());
 

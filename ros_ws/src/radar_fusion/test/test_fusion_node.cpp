@@ -436,8 +436,8 @@ TEST_F(FusionNodeTest, CameraDetectionsCreateConfirmedTracksWhenFusionEnabled) {
     fusion_node_.reset();
     fusion_node_ = enabled_node;
     executor_.add_node(fusion_node_);
-    ASSERT_TRUE(wait_for_discovery(true))
-        << "ROS entities failed to rediscover after enabling camera fusion";
+    ASSERT_TRUE(wait_for_discovery(true)) << "ROS entities failed to rediscover after enabling "
+                                             "camera fusion";
 
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -447,8 +447,8 @@ TEST_F(FusionNodeTest, CameraDetectionsCreateConfirmedTracksWhenFusionEnabled) {
 
     auto publish_camera = [this](double x, double y, int32_t sec, uint32_t nsec) {
         geometry_msgs::msg::PoseArray detections;
-        detections.header.frame_id  = "map";
-        detections.header.stamp.sec = sec;
+        detections.header.frame_id      = "map";
+        detections.header.stamp.sec     = sec;
         detections.header.stamp.nanosec = nsec;
         geometry_msgs::msg::Pose pose;
         pose.position.x = x;
@@ -476,8 +476,8 @@ TEST_F(FusionNodeTest, CameraDetectionNearLidarTrackKeepsFusedOutputActive) {
     fusion_node_.reset();
     fusion_node_ = enabled_node;
     executor_.add_node(fusion_node_);
-    ASSERT_TRUE(wait_for_discovery(true))
-        << "ROS entities failed to rediscover after enabling camera fusion";
+    ASSERT_TRUE(wait_for_discovery(true)) << "ROS entities failed to rediscover after enabling "
+                                             "camera fusion";
 
     cluster_pub_->publish(make_cluster_msg(0.0, 0.0, 0.0, 0, 0u));
     std::this_thread::sleep_for(1000ms);
@@ -493,8 +493,8 @@ TEST_F(FusionNodeTest, CameraDetectionNearLidarTrackKeepsFusedOutputActive) {
     }
 
     geometry_msgs::msg::PoseArray detections;
-    detections.header.frame_id  = "map";
-    detections.header.stamp.sec = 3;
+    detections.header.frame_id      = "map";
+    detections.header.stamp.sec     = 3;
     detections.header.stamp.nanosec = 0u;
     geometry_msgs::msg::Pose pose;
     pose.position.x = 1.8;
@@ -515,8 +515,8 @@ TEST_F(FusionNodeTest, EmptyCameraFramesDoNotDeleteLidarTrack) {
     fusion_node_.reset();
     fusion_node_ = enabled_node;
     executor_.add_node(fusion_node_);
-    ASSERT_TRUE(wait_for_discovery(true))
-        << "ROS entities failed to rediscover after enabling camera fusion";
+    ASSERT_TRUE(wait_for_discovery(true)) << "ROS entities failed to rediscover after enabling "
+                                             "camera fusion";
 
     cluster_pub_->publish(make_cluster_msg(0.0, 0.0, 0.0, 0, 0u));
     std::this_thread::sleep_for(1000ms);
@@ -532,12 +532,12 @@ TEST_F(FusionNodeTest, EmptyCameraFramesDoNotDeleteLidarTrack) {
     }
 
     geometry_msgs::msg::PoseArray detections;
-    detections.header.frame_id  = "map";
-    detections.header.stamp.sec = 2;
+    detections.header.frame_id      = "map";
+    detections.header.stamp.sec     = 2;
     detections.header.stamp.nanosec = 100000000u;
     camera_detection_pub_->publish(detections);
     std::this_thread::sleep_for(100ms);
-    detections.header.stamp.sec = 2;
+    detections.header.stamp.sec     = 2;
     detections.header.stamp.nanosec = 200000000u;
     camera_detection_pub_->publish(detections);
 
