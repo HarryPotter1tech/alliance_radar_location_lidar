@@ -22,4 +22,4 @@
 	url = https://github.com/yukikaze223344/hicamera_ros_driver.git
 [submodule "ros_ws/src/radar_fast_livo2"]
 	path = ros_ws/src/radar_fast_livo2
-	url = https://github.com/yukikaze223344/radar_fast_livo2.git
+	url = https://github.com/Alliance-Algorithm/radar_fast_livo2.git
